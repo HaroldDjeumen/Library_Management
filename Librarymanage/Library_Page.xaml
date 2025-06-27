@@ -18,7 +18,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Book List -->
-        <ScrollViewer Grid.Column="0" Background="White" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer x:Name="bookPanel" Grid.Column="0" Background="White" VerticalScrollBarVisibility="Auto">
             <WrapPanel x:Name="BooksPanel" Margin="10" />
         </ScrollViewer>
 

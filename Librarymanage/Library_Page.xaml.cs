@@ -98,13 +98,20 @@ namespace Librarymanage
         {
             BookDetailsPanel.Visibility = Visibility.Visible;
 
-            BigCoverImage.Source = new BitmapImage(new Uri(book.ImagePath, UriKind.Relative));
+            Image cover = new Image
+            {
+                Source = new BitmapImage(new Uri(book.ImagePath, UriKind.RelativeOrAbsolute)),
+                Width = 200,
+                Height = 250
+            };
 
-            BookTitle.Text = book.Title;
+            BookTitle.Text =    +.Title;
             BookAuthor.Text = "Author: " + book.Author;
             BookReleaseDate.Text = "Released: " + book.ReleaseDate;
             BookISBN.Text = "ISBN: " + book.ISBN;
             BookSummary.Text = book.Summary;
+
+            ;
         }
     }
 }
