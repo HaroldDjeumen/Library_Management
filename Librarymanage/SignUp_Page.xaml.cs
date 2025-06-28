@@ -17,6 +17,8 @@ namespace Librarymanage
         {
             InitializeComponent();
             _mainFrame = mainFrame;
+
+            
         }
 
         private void SignupButton_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -44,9 +46,14 @@ namespace Librarymanage
             {
                 MessageBox.Show("Password must be at least 8 characters long, with uppercase, lowercase, number, and special character.");
                 return;
-            } 
-            
-            //
+            }
+
+            // Comfirm password
+            if (PasswordTextBox.Password != ConfirmPasswordTextBox.Password)
+            {
+                MessageBox.Show("Passwords do not match.");
+                return;
+            }
             // Save user
             File.AppendAllText(filePath, $"{username},{password}{Environment.NewLine}");
             MessageBox.Show("User registered successfully!");

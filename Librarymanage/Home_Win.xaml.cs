@@ -26,6 +26,8 @@ namespace Librarymanage
         {
             InitializeComponent();
             _mainFrame = mainFrame;
+
+            
         }
 
         private void Login_Click(object sender, RoutedEventArgs e)
