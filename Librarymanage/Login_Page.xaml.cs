@@ -28,6 +28,8 @@ namespace Librarymanage
         {
             InitializeComponent();
             _mainFrame = mainFrame;
+
+            
         }
 
         private void LoginButton_Click(object sender, System.Windows.RoutedEventArgs e)

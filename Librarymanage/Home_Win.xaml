@@ -5,7 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Librarymanage"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
+      d:DesignHeight="500" d:DesignWidth="800"
       Title="HomePage">
 
     <Grid>
@@ -13,71 +13,50 @@
         <Grid.Background>
             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                 <GradientStop Color="#E6E6FA" Offset="0" />
-                <GradientStop Color="#9370DB" Offset="2" />
+                <GradientStop Color="#E6E6FA" Offset="1" />
             </LinearGradientBrush>
         </Grid.Background>
 
-        <!-- Card Container -->
+        <!-- Centered Card -->
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+            
 
-        <!-- Fix: Replace StackPanel with a Grid and use Margin for spacing -->
-        <Grid VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,211,0,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
 
-            <!-- Title -->
-            <TextBlock Text="Down Town Library"
-                       FontSize="40"
-                       FontWeight="Bold"
-                       Foreground="black"
-                       TextAlignment="Center"
-                       Margin="0,-66,0,86"
-                       Grid.Row="0"/>
+                    <!-- Title -->
+                    <TextBlock Text="Down Town Library"
+                           FontSize="36"
+                           FontWeight="Bold"
+                           Foreground="#4B0082"
+                           TextAlignment="Center"
+                           Margin="0,0,0,30" />
 
-            <!-- Login Button -->
-            <Button x:Name="Login_btn" Content="Login"
-                    FontSize="20"
-                    FontWeight="Bold"
-                    Foreground="White"
-                    Background="#9370DB"
-                    Width="220" Height="50"
-                    BorderThickness="0"
-                    Click="Login_Click"
-                    Cursor="Hand"
-                    Margin="18,54,18,13"
-                    Padding="5" Grid.RowSpan="2">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border CornerRadius="10" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
+                    <!-- Login Button -->
+                    <Button x:Name="Login_btn" Content="Login"
+                        FontSize="20"
+                        FontWeight="Bold"
+                        Foreground="White"
+                        Background="#9370DB"
+                        Width="220" Height="50"
+                        BorderThickness="0"
+                        Click="Login_Click"
+                        Cursor="Hand"
+                        Margin="0,0,0,15"
+                        Padding="5" />
 
-            <!-- Signup Button -->
-            <Button x:Name="signup_btn" Content="Register"
-                    FontSize="20"
-                    FontWeight="Bold"
-                    Foreground="White"
-                    Background="#9370DB"
-                    Width="220" Height="50"
-                    BorderThickness="0"
-                    Click="SignUp_Click"
-                    Cursor="Hand"
-                    Padding="5"
-                    Grid.Row="2">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border CornerRadius="10" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
+                    <!-- Signup Button -->
+                    <Button x:Name="signup_btn" Content="Register"
+                        FontSize="20"
+                        FontWeight="Bold"
+                        Foreground="White"
+                        Background="#9370DB"
+                        Width="220" Height="50"
+                        BorderThickness="0"
+                        Click="SignUp_Click"
+                        Cursor="Hand"
+                        Padding="5" />
+                </StackPanel>
+            
         </Grid>
     </Grid>
-
 </Page>

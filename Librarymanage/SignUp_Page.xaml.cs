@@ -17,6 +17,8 @@ namespace Librarymanage
         {
             InitializeComponent();
             _mainFrame = mainFrame;
+
+            
         }
 
         private void SignupButton_Click(object sender, System.Windows.RoutedEventArgs e)

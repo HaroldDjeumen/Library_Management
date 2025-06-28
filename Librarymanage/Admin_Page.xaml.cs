@@ -25,6 +25,26 @@ namespace Librarymanage
         {
             InitializeComponent();
             _mainFrame = mainFrame;
+
+            // Make the parent window full screen
+            Window parentWindow = Window.GetWindow(this);
+            if (parentWindow != null)
+            {
+                parentWindow.WindowState = WindowState.Maximized;
+                
+            }
+            else
+            {
+                this.Loaded += (s, e) =>
+                {
+                    var win = Window.GetWindow(this);
+                    if (win != null)
+                    {
+                        win.WindowState = WindowState.Maximized;
+                        
+                    }
+                };
+            }
         }
     }
 }
