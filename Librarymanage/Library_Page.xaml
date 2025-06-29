@@ -8,7 +8,7 @@
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Library_Page">
 
-    <Grid Background="#F7F9F8" Margin="10">
+    <Grid Background="#F7F9F8" Margin="0,0,10,5">
         <!-- Changed 'Padding' to 'Margin' as Grid does not support 'Padding' -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" />
