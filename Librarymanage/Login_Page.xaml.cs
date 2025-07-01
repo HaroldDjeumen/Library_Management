@@ -61,7 +61,7 @@ namespace Librarymanage
                     else
                     {
                         // Navigate to Library Page
-                        _mainFrame.Navigate(new Library_Page(_mainFrame)); //Open Library Page
+                        _mainFrame.Navigate(new Library_Page(_mainFrame, username)); //Open Library Page
                     }
 
                     return;
