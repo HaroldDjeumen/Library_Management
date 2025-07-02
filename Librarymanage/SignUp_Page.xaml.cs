@@ -27,6 +27,7 @@ namespace Librarymanage
             string password = PasswordTextBox.Password;
 
             // Check if username already exists
+            //fix up username
             if (File.Exists(filePath))
             {
                 var existingUsers = File.ReadAllLines(filePath);

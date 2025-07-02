@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace Librarymanage
 {
@@ -27,26 +20,31 @@ namespace Librarymanage
         public string Summary { get; set; }
     }
 
-    public class BookSummary
+   
+
+    public class Reservation
     {
-        public string sTitle { get; set; }
-        public string sSummary { get; set; }
+        public string Username { get; set; }
+        public string BookTitle { get; set; }
+        public DateTime ReservationDate { get; set; }
     }
 
     public partial class Library_Page : Page
     {
         private Frame _mainFrame;
-        public Library_Page(Frame mainFrame)
+        private string _currentUsername;
+        private Book _selectedBook; 
+        public Library_Page(Frame mainFrame, string username)
         {
             InitializeComponent();
             _mainFrame = mainFrame;
+            _currentUsername = username;
 
             // Make the parent window full screen
             Window parentWindow = Window.GetWindow(this);
             if (parentWindow != null)
             {
                 parentWindow.WindowState = WindowState.Maximized;
-                
             }
             else
             {
@@ -56,54 +54,22 @@ namespace Librarymanage
                     if (win != null)
                     {
                         win.WindowState = WindowState.Maximized;
-                       
                     }
                 };
             }
 
             LoadBooks();
+
+            // Fix: Pass a valid book title to ReserveBook
+            if (_selectedBook != null)
+            {
+                ReserveBook(_selectedBook.Title);
+            }
         }
 
-        private void LoadBooks()
+        private async Task LoadBooks(string searchQuery = "Harry Potter")
         {
-            List<BookSummary> booksummary = new List<BookSummary>();
-            List<Book> books = new List<Book>();
-
-            if (File.Exists("booksummary.txt"))
-            {
-                var lines = File.ReadAllLines("booksummary.txt");
-
-                foreach (var line in lines)
-                {
-                    var parts = line.Split(';');
-
-                    booksummary.Add(new BookSummary
-                    {
-                        sTitle = parts[0],
-                        sSummary = parts[1]
-                    });
-                }
-            }
-
-            if (File.Exists("books.txt"))
-            {
-                var lines = File.ReadAllLines("books.txt");
-
-                foreach (var line in lines)
-                {
-                    var parts = line.Split(';');
-
-                    books.Add(new Book
-                    {
-                        Title = parts[0],
-                        Author = parts[1],
-                        ReleaseDate = parts[2],
-                        ISBN = parts[3],
-                        ImagePath = parts[4],
-                        Summary = parts[5]
-                    });
-                }
-            }
+            List<Book> books = await SearchBooksFromAPI(searchQuery);
 
             foreach (var book in books)
             {
@@ -125,37 +91,216 @@ namespace Librarymanage
                 {
                     Text = book.Title,
                     FontWeight = FontWeights.Bold,
-                    TextAlignment = TextAlignment.Center
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap,
+                    Width = 140
                 };
 
                 bookPanel.Children.Add(cover);
                 bookPanel.Children.Add(title);
 
-                //Find the matching BookSummary for the current book
-                var matchingSummary = booksummary.FirstOrDefault(bs => bs.sTitle.Trim().Equals(book.Title.Trim(), StringComparison.OrdinalIgnoreCase));
-
-                bookPanel.MouseLeftButtonUp += (s, e) => ShowBookDetails(book, matchingSummary);
+                bookPanel.MouseLeftButtonUp += (s, e) => ShowBookDetails(book);
 
                 BooksPanel.Children.Add(bookPanel);
             }
         }
 
-        private void ShowBookDetails(Book book, BookSummary booksummary)
+        private void ShowBookDetails(Book book)
         {
+            _selectedBook = book;
+
             BookDetailsPanel.Visibility = Visibility.Visible;
 
-            // Corrected syntax for setting the image source
-            BigCoverImage.Source = new BitmapImage(new Uri(book.ImagePath, UriKind.RelativeOrAbsolute));
-
+            BigCoverImage.Source = new BitmapImage(new Uri(book.ImagePath, UriKind.Absolute));
             BookTitle.Text = book.Title;
             BookAuthor.Text = "Author: " + book.Author;
             BookReleaseDate.Text = "Released: " + book.ReleaseDate;
             BookISBN.Text = "ISBN: " + book.ISBN;
+            BookSummary.Text = book.Summary;
 
-            // Handle null BookSummary gracefully
-            BookSummary.Text = booksummary?.sSummary ?? "Summary not available";
+            // Reset
+            ReservationCalendar.Visibility = Visibility.Collapsed;
+            SelectedReservationDateText.Text = "";
+            ReservationPolicyText.Visibility = Visibility.Collapsed;
+            ConfirmReservationButton.Visibility = Visibility.Collapsed;
 
-            MessageBox.Show("Image Path: " + book.ImagePath);
+            // Check if book is already reserved
+            ReserveBook(book.Title);
         }
+
+        private void ReserveBook(string bookTitle)
+        {
+            if (IsBookReserved(bookTitle))
+            {
+                OpenCalendarButton.Visibility = Visibility.Collapsed;
+                BookAvail.Text = "This book is currently reserved.";
+                BookAvail.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                OpenCalendarButton.Visibility = Visibility.Visible;
+                BookAvail.Visibility = Visibility.Collapsed;
+            }
+        }
+
+
+        private void OpenCalendarButton_Click(object sender, RoutedEventArgs e)
+        {
+            ReservationCalendar.Visibility = Visibility.Visible;
+
+            // Limit the calendar selection
+            ReservationCalendar.DisplayDateStart = DateTime.Now;
+            ReservationCalendar.DisplayDateEnd = DateTime.Now.AddMonths(2);
+        }
+
+        private void ReservationCalendar_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ReservationCalendar.SelectedDate.HasValue)
+            {
+                DateTime selectedDate = ReservationCalendar.SelectedDate.Value;
+                SelectedReservationDateText.Text = "Reserved Until: " + selectedDate.ToString("dd/MM/yyyy");
+
+                // Show policies and confirm button
+                ReservationPolicyText.Visibility = Visibility.Visible;
+                ConfirmReservationButton.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void ConfirmReservationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedBook != null && ReservationCalendar.SelectedDate.HasValue)
+            {
+                string reservationDate = ReservationCalendar.SelectedDate.Value.ToString("dd/MM/yyyy");
+
+                // Save to reservations.txt
+                string reservationInfo = $"{_currentUsername};{_selectedBook.Title};{reservationDate}";
+                File.AppendAllText("reservations.txt", reservationInfo + Environment.NewLine);
+
+                ConfirmReservationButton.Visibility = Visibility.Collapsed;
+                ReservationCalendar.Visibility = Visibility.Collapsed;
+                OpenCalendarButton.Visibility = Visibility.Collapsed;
+                ReservationPolicyText.Visibility = Visibility.Collapsed;
+                BookAvail.Text = "Status: Reserved";
+                BookAvail.Visibility = Visibility.Visible;
+
+                MessageBox.Show($"Book '{_selectedBook.Title}' has been reserved by {_currentUsername} until {reservationDate}.");
+            }
+        }
+
+        private bool IsBookReserved(string bookTitle)
+        {
+            if (!File.Exists("Reservations.txt"))
+                return false;
+
+            var reservations = File.ReadAllLines("Reservations.txt");
+
+            foreach (var res in reservations)
+            {
+                var parts = res.Split(';');
+                if (parts.Length >= 3 && parts[1].Trim().Equals(bookTitle.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    DateTime reservedUntil = DateTime.ParseExact(parts[2], "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                    if (reservedUntil >= DateTime.Now)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private async Task<List<Book>> SearchBooksFromAPI(string searchQuery)
+        {
+            List<Book> books = new List<Book>();
+            List<string> queries = new List<string>
+    {
+        "Story books",
+        "Science Fiction Novel",
+        "Wimpy Kid",
+        "Kids Books",
+        "Romance Novels",
+        "Mystery Novels",
+    };
+
+            using (HttpClient client = new HttpClient())
+            {
+                foreach (var query in queries)
+                {
+                    try
+                    {
+                        string Url = $"https://www.googleapis.com/books/v1/volumes?q={query.Replace(" ", "+")}&maxResults=40";
+                        var response = await client.GetAsync(Url);
+                        var jsonString = await response.Content.ReadAsStringAsync();
+
+                        dynamic data = JsonConvert.DeserializeObject(jsonString);
+
+                        if (data.items != null && data.items.Count > 0)
+                        {
+                            foreach (var item in data.items)
+                            {
+                                var bookInfo = item.volumeInfo;
+
+                                // ✅ Validate Image
+                                if (bookInfo.imageLinks == null || string.IsNullOrEmpty((string)bookInfo.imageLinks.thumbnail))
+                                    continue;
+
+                                string imagePath = ((string)bookInfo.imageLinks.thumbnail).Replace("http://", "https://");
+                                if (imagePath == "https://via.placeholder.com/150")
+                                    continue;
+
+                                // ✅ Validate Authors
+                                if (bookInfo.authors == null || bookInfo.authors.Count == 0)
+                                    continue;
+
+                                string[] authorsArray = bookInfo.authors.ToObject<string[]>();
+                                if (authorsArray.Length == 0 || authorsArray[0].ToLower() == "unknown")
+                                    continue;
+
+                                // ✅ Validate Description
+                                if (bookInfo.description == null || string.IsNullOrEmpty((string)bookInfo.description) || ((string)bookInfo.description).ToLower() == "unknown")
+                                    continue;
+
+                                // ✅ Validate ISBN
+                                if (bookInfo.industryIdentifiers == null || bookInfo.industryIdentifiers.Count == 0)
+                                    continue;
+
+                                books.Add(new Book
+                                {
+                                    Title = bookInfo.title,
+                                    Author = string.Join(", ", authorsArray),
+                                    ReleaseDate = bookInfo.publishedDate != null ? bookInfo.publishedDate.ToString() : "Unknown",
+                                    ISBN = bookInfo.industryIdentifiers[0].identifier.ToString(),
+                                    ImagePath = imagePath,
+                                    Summary = bookInfo.description.ToString()
+                                });
+
+                                if (books.Count >= 200) break; // ✅ Load 200 books now
+                            }
+                        }
+
+                        if (books.Count >= 200) break; // ✅ Stop searching if enough books are found
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error fetching data from API: {ex.Message}");
+                    }
+                }
+            }
+
+            return books;
+        }
+
+
+        private async void SearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            string query = SearchBox.Text.Trim();
+            if (!string.IsNullOrEmpty(query))
+            {
+                BooksPanel.Children.Clear(); // Clear old books
+                await LoadBooks(query);
+            }
+        }
+
+
     }
 }

@@ -19,7 +19,8 @@ namespace Librarymanage
         public MainWindow()
         {
             InitializeComponent();
-            MainFrame.Navigate(new HomePage(MainFrame)); // Show Home Page first
+            
+           MainFrame.Navigate(new HomePage(MainFrame)); 
         }
     }
 }
