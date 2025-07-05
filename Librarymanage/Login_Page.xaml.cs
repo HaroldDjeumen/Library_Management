@@ -16,9 +16,7 @@ using System.Windows.Shapes;
 
 namespace Librarymanage
 {
-    /// <summary>
-    /// Interaction logic for Login_Page.xaml
-    /// </summary>
+    
     public partial class Login_Page : Page
     {
         private Frame _mainFrame;

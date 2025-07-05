@@ -214,12 +214,13 @@ namespace Librarymanage
             List<Book> books = new List<Book>();
             List<string> queries = new List<string>
     {
-        "Story books",
+        searchQuery,
         "Science Fiction Novel",
         "Wimpy Kid",
         "Kids Books",
         "Romance Novels",
         "Mystery Novels",
+
     };
 
             using (HttpClient client = new HttpClient())
@@ -240,7 +241,7 @@ namespace Librarymanage
                             {
                                 var bookInfo = item.volumeInfo;
 
-                                // ✅ Validate Image
+                                
                                 if (bookInfo.imageLinks == null || string.IsNullOrEmpty((string)bookInfo.imageLinks.thumbnail))
                                     continue;
 
@@ -248,7 +249,7 @@ namespace Librarymanage
                                 if (imagePath == "https://via.placeholder.com/150")
                                     continue;
 
-                                // ✅ Validate Authors
+                               
                                 if (bookInfo.authors == null || bookInfo.authors.Count == 0)
                                     continue;
 
@@ -256,11 +257,11 @@ namespace Librarymanage
                                 if (authorsArray.Length == 0 || authorsArray[0].ToLower() == "unknown")
                                     continue;
 
-                                // ✅ Validate Description
+                                
                                 if (bookInfo.description == null || string.IsNullOrEmpty((string)bookInfo.description) || ((string)bookInfo.description).ToLower() == "unknown")
                                     continue;
 
-                                // ✅ Validate ISBN
+                                
                                 if (bookInfo.industryIdentifiers == null || bookInfo.industryIdentifiers.Count == 0)
                                     continue;
 
@@ -274,11 +275,11 @@ namespace Librarymanage
                                     Summary = bookInfo.description.ToString()
                                 });
 
-                                if (books.Count >= 200) break; // ✅ Load 200 books now
+                                if (books.Count >= 200) break; //  Load 200 books now
                             }
                         }
 
-                        if (books.Count >= 200) break; // ✅ Stop searching if enough books are found
+                        if (books.Count >= 200) break; //  Stop searching if enough books are found
                     }
                     catch (Exception ex)
                     {
