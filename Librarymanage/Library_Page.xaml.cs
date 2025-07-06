@@ -34,7 +34,10 @@ namespace Librarymanage
         private Frame _mainFrame;
         private string _currentUsername;
         private Book _selectedBook;
-        private static string connectionString = "Data Source=C:\\Users\\darre\\OneDrive\\Documents\\files\\Librarymanage\\Data\\Library.db;Version=3;";
+    master
+        private string connectionString = "Data Source=C:\\Users\\hpie9\\Documents\\Librarymanage\\Librarymanage\\Data\\Library.db;Version=3;";
+
+        
         public Library_Page(Frame mainFrame, string username)
         {
             InitializeComponent();
