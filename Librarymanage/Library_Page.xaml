@@ -102,6 +102,13 @@
                               VerticalAlignment="Center"
                               SelectedDatesChanged="ReservationCalendar_SelectedDatesChanged" />
 
+                    <Calendar x:Name="ReturnCalendar" 
+                              Visibility="Collapsed" 
+                              HorizontalAlignment="Left" 
+                              VerticalAlignment="Center" 
+                              SelectedDatesChanged="ReturnCalendar_SelectedDatesChanged" />
+
+
                     <TextBlock x:Name="SelectedReservationDateText"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Center"

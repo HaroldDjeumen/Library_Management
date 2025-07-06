@@ -132,6 +132,7 @@ namespace Librarymanage
                     Tag = book
                 };
                 addButton.Click += AddBookToDatabase;
+                
 
                 // Build details panel
                 detailsPanel.Children.Add(title);
@@ -151,6 +152,7 @@ namespace Librarymanage
         }
 
 
+        // Fix for CS1002 and CS0029 errors in the AddBookToDatabase method
         private void AddBookToDatabase(object sender, RoutedEventArgs e)
         {
             Button addButton = sender as Button;
@@ -163,17 +165,29 @@ namespace Librarymanage
 
                 using (SQLiteCommand cmd = new SQLiteCommand(insertQuery, conn))
                 {
+                    // Fix the release date format to allow YYYY-MM-DD and YYYY
+                    DateTime releaseDate;
+                    if (DateTime.TryParseExact(selectedBook.ReleaseDate, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out releaseDate) ||
+                        DateTime.TryParseExact(selectedBook.ReleaseDate, "yyyy", null, System.Globalization.DateTimeStyles.None, out releaseDate))
+                    {
+                        cmd.Parameters.AddWithValue("@ReleaseDate", releaseDate);
+                    }
+                    else
+                    {
+                        MessageBox.Show($"Invalid release date format for book '{selectedBook.Title}'.");
+                        return;
+                    }
+
                     cmd.Parameters.AddWithValue("@Name", selectedBook.Title);
-                    cmd.Parameters.AddWithValue("@ReleaseDate", selectedBook.ReleaseDate);
                     cmd.Parameters.AddWithValue("@Author", selectedBook.Author);
                     cmd.Parameters.AddWithValue("@ISBN", selectedBook.ISBN);
                     cmd.Parameters.AddWithValue("@Description", selectedBook.Summary);
-                    cmd.Parameters.AddWithValue("@Image", selectedBook.ImagePath);
 
                     try
                     {
                         cmd.ExecuteNonQuery();
                         MessageBox.Show($"Book '{selectedBook.Title}' added successfully!");
+                        LoadBooksFromDatabase(); // Refresh the book list
                     }
                     catch (Exception ex)
                     {
@@ -356,17 +370,17 @@ namespace Librarymanage
                             string releaseDate = reader["Release-Date"].ToString();
                             string isbn = reader["ISBN"].ToString();
                             string description = reader["Description"].ToString();
-                            string image = reader["Image"].ToString();
+                            
 
                             // Show an input form
-                            ShowModifyForm(bookId, name, author, releaseDate, isbn, description, image);
+                            ShowModifyForm(bookId, name, author, releaseDate, isbn, description);
                         }
                     }
                 }
             }
         }
 
-        private void ShowModifyForm(int bookId, string name, string author, string releaseDate, string isbn, string description, string image)
+        private void ShowModifyForm(int bookId, string name, string author, string releaseDate, string isbn, string description)
         {
             Window editWindow = new Window
             {
@@ -393,7 +407,6 @@ namespace Librarymanage
             TextBox releaseDateBox = new TextBox { Text = releaseDate, Height = Double.NaN, Margin = new Thickness(0, 0, 0, 10) };
             TextBox isbnBox = new TextBox { Text = isbn, Height = Double.NaN, Margin = new Thickness(0, 0, 0, 10) };
             TextBox descriptionBox = new TextBox { Text = description, Height = 100, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10) };
-            TextBox imageBox = new TextBox { Text = image, Height = Double.NaN, Margin = new Thickness(0, 0, 0, 10) };
 
             Button saveButton = new Button
             {
@@ -407,9 +420,11 @@ namespace Librarymanage
                 HorizontalAlignment = HorizontalAlignment.Center
             };
 
-            saveButton.Click += (s, e) =>
+            saveButton.Click += async (s, e) =>
             {
-                UpdateBook(bookId, nameBox.Text, authorBox.Text, releaseDateBox.Text, isbnBox.Text, descriptionBox.Text, imageBox.Text);
+                UpdateBook(bookId, nameBox.Text, authorBox.Text, releaseDateBox.Text, isbnBox.Text, descriptionBox.Text);
+                await Task.Delay(200); // Small delay to let database finish writing
+                LoadBooksFromDatabase(); // Now refresh
                 editWindow.Close();
             };
 
@@ -423,8 +438,6 @@ namespace Librarymanage
             panel.Children.Add(isbnBox);
             panel.Children.Add(CreateLabel("Description:"));
             panel.Children.Add(descriptionBox);
-            panel.Children.Add(CreateLabel("Image Link:"));
-            panel.Children.Add(imageBox);
             panel.Children.Add(saveButton);
 
             editWindow.Content = panel;
@@ -432,13 +445,13 @@ namespace Librarymanage
         }
 
 
-        private void UpdateBook(int bookId, string name, string author, string releaseDate, string isbn, string description, string image)
+        private void UpdateBook(int bookId, string name, string author, string releaseDate, string isbn, string description)
         {
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
                 string query = @"UPDATE Books 
-                         SET Name = @Name, Author = @Author, `Release-Date` = @ReleaseDate, ISBN = @ISBN, Description = @Description, Image = @Image
+                         SET Name = @Name, Author = @Author, `Release-Date` = @ReleaseDate, ISBN = @ISBN, Description = @Description
                          WHERE Id = @Id";
 
                 using (SQLiteCommand command = new SQLiteCommand(query, connection))
@@ -448,7 +461,6 @@ namespace Librarymanage
                     command.Parameters.AddWithValue("@ReleaseDate", releaseDate);
                     command.Parameters.AddWithValue("@ISBN", isbn);
                     command.Parameters.AddWithValue("@Description", description);
-                    command.Parameters.AddWithValue("@Image", image);
                     command.Parameters.AddWithValue("@Id", bookId);
 
                     command.ExecuteNonQuery();
