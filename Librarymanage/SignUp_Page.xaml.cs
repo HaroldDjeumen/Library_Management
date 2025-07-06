@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System.Data.SQLite;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+
 
 namespace Librarymanage
 {
@@ -10,15 +12,13 @@ namespace Librarymanage
     public partial class SignUp_Page : Page
     {
         private Frame _mainFrame;
-        private string filePath = "users.txt";
+        private static string connectionString = "Data Source=C:\\Users\\hpie9\\Documents\\Librarymanage\\Librarymanage\\Data\\Library.db;Version=3;";
 
 
         public SignUp_Page(Frame mainFrame)
         {
             InitializeComponent();
             _mainFrame = mainFrame;
-
-            
         }
 
         private void SignupButton_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -26,21 +26,6 @@ namespace Librarymanage
             string username = UsernameTextBox.Text.Trim();
             string password = PasswordTextBox.Password;
 
-            // Check if username already exists
-            //fix up username
-            if (File.Exists(filePath))
-            {
-                var existingUsers = File.ReadAllLines(filePath);
-                foreach (var user in existingUsers)
-                {
-                    var userDetails = user.Split(',');
-                    if (userDetails[0] == username)
-                    {
-                        MessageBox.Show("Username already exists.");
-                        return;
-                    }
-                }
-            }
 
             // Validate password
             if (!IsPasswordValid(password))
@@ -49,20 +34,21 @@ namespace Librarymanage
                 return;
             }
 
-            // Comfirm password
+            // Confirm password
             if (PasswordTextBox.Password != ConfirmPasswordTextBox.Password)
             {
                 MessageBox.Show("Passwords do not match.");
                 return;
             }
+
             // Save user
-            File.AppendAllText(filePath, $"{username},{password}{Environment.NewLine}");
+            AddUserToDatabase(username, password);
             MessageBox.Show("User registered successfully!");
 
             // Optional: Go back to Login Page
             _mainFrame.Navigate(new Login_Page(_mainFrame));
         }
-        
+
         private void LoginButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             _mainFrame.Navigate(new Login_Page(_mainFrame));
@@ -86,6 +72,36 @@ namespace Librarymanage
                 return false;
 
             return true;
+        }
+
+        public static void AddUserToDatabase(string username, string password)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                // Check if the username already exists
+                string checkQuery = "SELECT COUNT(*) FROM Users WHERE Username = @Username";
+                using (SQLiteCommand checkCommand = new SQLiteCommand(checkQuery, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@Username", username);
+                    long count = (long)checkCommand.ExecuteScalar();
+                    if (count > 0)
+                    {
+                        MessageBox.Show("Username already exists in the database.");
+                        return;
+                    }
+                }
+
+                // Insert the new user
+                string query = "INSERT INTO Users (Username, Password) VALUES (@Username, @Password)";
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@Password", password);
+                    command.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

@@ -1,33 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Data.SQLite;
 
 namespace Librarymanage
 {
-    
     public partial class Login_Page : Page
     {
         private Frame _mainFrame;
-        private string filePath = "users.txt";
+        private static string connectionString = "Data Source=C:\\Users\\hpie9\\Documents\\Librarymanage\\Librarymanage\\Data\\Library.db;Version=3;";
 
         public Login_Page(Frame mainFrame)
         {
             InitializeComponent();
             _mainFrame = mainFrame;
-
-            
         }
 
         private void LoginButton_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -35,44 +21,59 @@ namespace Librarymanage
             string username = UsernameTextBox.Text.Trim();
             string password = PasswordTextBox.Password;
 
-            // Check if file exists
-            if (!File.Exists(filePath))
+            string userRole = GetUserRoleFromDatabase(username, password);
+
+            if (userRole == "admin")
             {
-                MessageBox.Show("No users found. Please register first.");
-                return;
+                _mainFrame.Navigate(new Admin_Page(_mainFrame));
             }
-
-            // Check if username and password match
-            var users = File.ReadAllLines(filePath);
-            foreach (var user in users)
+            else if (userRole == "user")
             {
-                var userDetails = user.Split(',');
-                if (userDetails[0] == username && userDetails[1] == password)
-                {
-                    MessageBox.Show("Login successful!");
-
-                    if (username == "Admin123")
-                    {
-                        // Navigate to Admin Page
-                        _mainFrame.Navigate(new Admin_Page(_mainFrame)); //Open Admin Page
-                    }
-                    else
-                    {
-                        // Navigate to Library Page
-                        _mainFrame.Navigate(new Library_Page(_mainFrame, username)); //Open Library Page
-                    }
-
-                    return;
-                }
+                _mainFrame.Navigate(new Library_Page(_mainFrame, username)); 
             }
-
-            // If no match found
-            MessageBox.Show("Incorrect username or password.");
+            else
+            {
+                MessageBox.Show("Incorrect username or password.");
+            }
         }
 
         private void SignupButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             _mainFrame.Navigate(new SignUp_Page(_mainFrame));
+        }
+
+        private string GetUserRoleFromDatabase(string username, string password)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT Username FROM Users WHERE Username = @Username AND Password = @Password";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@Password", password);
+
+                    var result = command.ExecuteScalar();
+
+                    if (result != null)
+                    {
+                        // If username is admin123
+                        if (result.ToString() == "admin123")
+                        {
+                            return "admin";
+                        }
+                        else
+                        {
+                            return "user";
+                        }
+                    }
+                    else
+                    {
+                        return "notfound";
+                    }
+                }
+            }
         }
     }
 }
