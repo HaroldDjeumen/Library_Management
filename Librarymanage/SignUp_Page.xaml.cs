@@ -12,7 +12,7 @@ namespace Librarymanage
     public partial class SignUp_Page : Page
     {
         private Frame _mainFrame;
-        private static string connectionString = "Data Source=C:\\Users\\darre\\OneDrive\\Documents\\files\\Librarymanage\\Data\\Library.db;Version=3;";
+        private static string connectionString = "Data Source=C:\\Users\\hpie9\\Documents\\Librarymanage\\Librarymanage\\Data\\Library.db;Version=3;";
 
         public SignUp_Page(Frame mainFrame)
         {
