@@ -1,11 +1,11 @@
-﻿using System.IO;
+﻿using Newtonsoft.Json;
+using System.Data.SQLite;
+using System.IO;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Net.Http;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
 
 namespace Librarymanage
 {
@@ -33,7 +33,8 @@ namespace Librarymanage
     {
         private Frame _mainFrame;
         private string _currentUsername;
-        private Book _selectedBook; 
+        private Book _selectedBook;
+        string connectionString = "Data Source=C:\\Users\\hpie9\\Documents\\Librarymanage\\Librarymanage\\Data\\Library.db;Version=3;";
         public Library_Page(Frame mainFrame, string username)
         {
             InitializeComponent();
@@ -59,6 +60,7 @@ namespace Librarymanage
             }
 
             LoadBooks();
+            
 
             // Fix: Pass a valid book title to ReserveBook
             if (_selectedBook != null)
@@ -67,43 +69,102 @@ namespace Librarymanage
             }
         }
 
-        private async Task LoadBooks(string searchQuery = "Harry Potter")
+        private async Task LoadBooks(string searchQuery = "")
         {
-            List<Book> books = await SearchBooksFromAPI(searchQuery);
+            BooksPanel.Children.Clear();
 
-            foreach (var book in books)
+            List<Book> books = LoadBooksFromDatabase(searchQuery);
+
+            var tasks = books.Select(async book =>
             {
-                StackPanel bookPanel = new StackPanel
+                // Get image from API
+                string imageUrl = await GetBookImageFromAPI(book.Title);
+
+                // Set image to the book object
+                book.ImagePath = imageUrl;
+
+                // UI updates must be on the UI thread
+                Dispatcher.Invoke(() =>
                 {
-                    Width = 150,
-                    Margin = new Thickness(10),
-                    Cursor = Cursors.Hand
-                };
+                    StackPanel bookPanel = new StackPanel
+                    {
+                        Width = 150,
+                        Margin = new Thickness(10),
+                        Cursor = Cursors.Hand
+                    };
 
-                Image cover = new Image
-                {
-                    Source = new BitmapImage(new Uri(book.ImagePath, UriKind.RelativeOrAbsolute)),
-                    Width = 150,
-                    Height = 200
-                };
+                    Image cover = new Image
+                    {
+                        Source = new BitmapImage(new Uri(book.ImagePath, UriKind.RelativeOrAbsolute)),
+                        Width = 150,
+                        Height = 200
+                    };
 
-                TextBlock title = new TextBlock
-                {
-                    Text = book.Title,
-                    FontWeight = FontWeights.Bold,
-                    TextAlignment = TextAlignment.Center,
-                    TextWrapping = TextWrapping.Wrap,
-                    Width = 140
-                };
+                    TextBlock title = new TextBlock
+                    {
+                        Text = book.Title,
+                        FontWeight = FontWeights.Bold,
+                        TextAlignment = TextAlignment.Center,
+                        TextWrapping = TextWrapping.Wrap,
+                        Width = 140
+                    };
 
-                bookPanel.Children.Add(cover);
-                bookPanel.Children.Add(title);
+                    bookPanel.Children.Add(cover);
+                    bookPanel.Children.Add(title);
+                    bookPanel.MouseLeftButtonUp += (s, e) => ShowBookDetails(book);
 
-                bookPanel.MouseLeftButtonUp += (s, e) => ShowBookDetails(book);
+                    BooksPanel.Children.Add(bookPanel);
+                });
+            });
 
-                BooksPanel.Children.Add(bookPanel);
-            }
+            // Wait for all images to load in parallel
+            await Task.WhenAll(tasks);
         }
+
+        private List<Book> LoadBooksFromDatabase(string searchQuery = "")
+        {
+            List<Book> books = new List<Book>();
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT * FROM Books";
+
+                // If the user typed something in search box, search for it
+                if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    query += " WHERE Name LIKE @SearchQuery";
+                }
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    if (!string.IsNullOrEmpty(searchQuery))
+                    {
+                        command.Parameters.AddWithValue("@SearchQuery", "%" + searchQuery + "%");
+                    }
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            books.Add(new Book
+                            {
+                                Title = reader["Name"].ToString(),
+                                Author = reader["Author"].ToString(),
+                                ReleaseDate = reader["Release-Date"].ToString(),
+                                ISBN = reader["ISBN"].ToString(),
+                                Summary = reader["Description"].ToString()
+                                // The image will be loaded later from the API
+                            });
+                        }
+                    }
+                }
+            }
+
+            return books;
+        }
+
 
         private void ShowBookDetails(Book book)
         {
@@ -144,146 +205,202 @@ namespace Librarymanage
         }
 
 
+
         private void OpenCalendarButton_Click(object sender, RoutedEventArgs e)
         {
             ReservationCalendar.Visibility = Visibility.Visible;
+            ReturnCalendar.Visibility = Visibility.Visible;
 
-            // Limit the calendar selection
+            // Limit the selection dates
             ReservationCalendar.DisplayDateStart = DateTime.Now;
-            ReservationCalendar.DisplayDateEnd = DateTime.Now.AddMonths(2);
+            ReservationCalendar.DisplayDateEnd = DateTime.Now.AddMonths(1);
+
+            ReturnCalendar.DisplayDateStart = DateTime.Now.AddDays(1);
+            ReturnCalendar.DisplayDateEnd = DateTime.Now.AddMonths(2);
         }
 
         private void ReservationCalendar_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ReservationCalendar.SelectedDate.HasValue)
-            {
-                DateTime selectedDate = ReservationCalendar.SelectedDate.Value;
-                SelectedReservationDateText.Text = "Reserved Until: " + selectedDate.ToString("dd/MM/yyyy");
+            UpdateReservationInfo();
+        }
 
-                // Show policies and confirm button
+        private void ReturnCalendar_SelectedDatesChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateReservationInfo();
+        }
+
+        private void UpdateReservationInfo()
+        {
+            if (ReservationCalendar.SelectedDate.HasValue && ReturnCalendar.SelectedDate.HasValue)
+            {
+                DateTime reservationDate = ReservationCalendar.SelectedDate.Value;
+                DateTime returnDate = ReturnCalendar.SelectedDate.Value;
+
+                if (reservationDate >= returnDate)
+                {
+                    MessageBox.Show("Return date must be after reservation date.");
+                    return;
+                }
+
+                SelectedReservationDateText.Text = $"Reserved: {reservationDate:dd/MM/yyyy} | Return: {returnDate:dd/MM/yyyy}";
                 ReservationPolicyText.Visibility = Visibility.Visible;
                 ConfirmReservationButton.Visibility = Visibility.Visible;
             }
         }
 
+
         private void ConfirmReservationButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedBook != null && ReservationCalendar.SelectedDate.HasValue)
+            if (_selectedBook != null && ReservationCalendar.SelectedDate.HasValue && ReturnCalendar.SelectedDate.HasValue)
             {
-                string reservationDate = ReservationCalendar.SelectedDate.Value.ToString("dd/MM/yyyy");
+                DateTime reservationDate = ReservationCalendar.SelectedDate.Value;
+                DateTime returnDate = ReturnCalendar.SelectedDate.Value;
 
-                // Save to reservations.txt
-                string reservationInfo = $"{_currentUsername};{_selectedBook.Title};{reservationDate}";
-                File.AppendAllText("reservations.txt", reservationInfo + Environment.NewLine);
+                using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+                {
+                    connection.Open();
+
+                    string query = "INSERT INTO Reservations (Username, BookTitle, ReservationDate, ReturnDate) VALUES (@Username, @BookTitle, @ReservationDate, @ReturnDate)";
+                    using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Username", _currentUsername);
+                        command.Parameters.AddWithValue("@BookTitle", _selectedBook.Title);
+                        command.Parameters.AddWithValue("@ReservationDate", reservationDate.ToString("yyyy-MM-dd"));
+                        command.Parameters.AddWithValue("@ReturnDate", returnDate.ToString("yyyy-MM-dd"));
+
+                        command.ExecuteNonQuery();
+                    }
+                }
 
                 ConfirmReservationButton.Visibility = Visibility.Collapsed;
                 ReservationCalendar.Visibility = Visibility.Collapsed;
+                ReturnCalendar.Visibility = Visibility.Collapsed;
                 OpenCalendarButton.Visibility = Visibility.Collapsed;
                 ReservationPolicyText.Visibility = Visibility.Collapsed;
                 BookAvail.Text = "Status: Reserved";
                 BookAvail.Visibility = Visibility.Visible;
 
-                MessageBox.Show($"Book '{_selectedBook.Title}' has been reserved by {_currentUsername} until {reservationDate}.");
+                MessageBox.Show($"Book '{_selectedBook.Title}' reserved by {_currentUsername} from {reservationDate:dd/MM/yyyy} to {returnDate:dd/MM/yyyy}.");
             }
         }
+
 
         private bool IsBookReserved(string bookTitle)
         {
-            if (!File.Exists("Reservations.txt"))
-                return false;
-
-            var reservations = File.ReadAllLines("Reservations.txt");
-
-            foreach (var res in reservations)
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
-                var parts = res.Split(';');
-                if (parts.Length >= 3 && parts[1].Trim().Equals(bookTitle.Trim(), StringComparison.OrdinalIgnoreCase))
+                connection.Open();
+                string query = "SELECT * FROM Reservations WHERE BookTitle = @BookTitle";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
                 {
-                    DateTime reservedUntil = DateTime.ParseExact(parts[2], "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture);
-                    if (reservedUntil >= DateTime.Now)
+                    command.Parameters.AddWithValue("@BookTitle", bookTitle);
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
                     {
-                        return true;
+                        while (reader.Read())
+                        {
+                            DateTime returnDate = DateTime.Parse(reader["ReturnDate"].ToString());
+                            if (returnDate >= DateTime.Now)
+                            {
+                                return true; // Book is still reserved
+                            }
+                        }
                     }
                 }
             }
-            return false;
+
+            return false; // Book is available
         }
 
-        private async Task<List<Book>> SearchBooksFromAPI(string searchQuery)
+
+
+
+
+        private async void SearchButton_Click(object sender, RoutedEventArgs e)
+        {
+            string query = SearchBox.Text.Trim();
+
+            if (!string.IsNullOrEmpty(query))
+            {
+                BooksPanel.Children.Clear(); // Clear old books
+
+                List<Book> searchResults = SearchBooksInDatabase(query);
+
+                if (searchResults.Count == 0)
+                {
+                    MessageBox.Show("No books found.");
+                    return;
+                }
+
+                foreach (var book in searchResults)
+                {
+                    // Get image from API
+                    string imagePath = await GetBookImageFromAPI(book.Title);
+
+                    StackPanel bookPanel = new StackPanel
+                    {
+                        Width = 150,
+                        Margin = new Thickness(10),
+                        Cursor = Cursors.Hand
+                    };
+
+                    Image cover = new Image
+                    {
+                        Source = new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute)),
+                        Width = 150,
+                        Height = 200
+                    };
+
+                    TextBlock title = new TextBlock
+                    {
+                        Text = book.Title,
+                        FontWeight = FontWeights.Bold,
+                        TextAlignment = TextAlignment.Center,
+                        TextWrapping = TextWrapping.Wrap,
+                        Width = 140
+                    };
+
+                    book.ImagePath = imagePath;
+
+                    bookPanel.Children.Add(cover);
+                    bookPanel.Children.Add(title);
+
+                    bookPanel.MouseLeftButtonUp += (s2, e2) => ShowBookDetails(book);
+
+                    BooksPanel.Children.Add(bookPanel);
+                }
+            }
+        }
+
+        private List<Book> SearchBooksInDatabase(string searchQuery)
         {
             List<Book> books = new List<Book>();
-            List<string> queries = new List<string>
-    {
-        searchQuery,
-        "Science Fiction Novel",
-        "Wimpy Kid",
-        "Kids Books",
-        "Romance Novels",
-        "Mystery Novels",
+            
 
-    };
-
-            using (HttpClient client = new HttpClient())
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
-                foreach (var query in queries)
+                connection.Open();
+                string query = "SELECT * FROM Books WHERE Name LIKE @SearchQuery";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
                 {
-                    try
+                    command.Parameters.AddWithValue("@SearchQuery", "%" + searchQuery + "%");
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
                     {
-                        string Url = $"https://www.googleapis.com/books/v1/volumes?q={query.Replace(" ", "+")}&maxResults=40";
-                        var response = await client.GetAsync(Url);
-                        var jsonString = await response.Content.ReadAsStringAsync();
-
-                        dynamic data = JsonConvert.DeserializeObject(jsonString);
-
-                        if (data.items != null && data.items.Count > 0)
+                        while (reader.Read())
                         {
-                            foreach (var item in data.items)
+                            books.Add(new Book
                             {
-                                var bookInfo = item.volumeInfo;
-
-                                
-                                if (bookInfo.imageLinks == null || string.IsNullOrEmpty((string)bookInfo.imageLinks.thumbnail))
-                                    continue;
-
-                                string imagePath = ((string)bookInfo.imageLinks.thumbnail).Replace("http://", "https://");
-                                if (imagePath == "https://via.placeholder.com/150")
-                                    continue;
-
-                               
-                                if (bookInfo.authors == null || bookInfo.authors.Count == 0)
-                                    continue;
-
-                                string[] authorsArray = bookInfo.authors.ToObject<string[]>();
-                                if (authorsArray.Length == 0 || authorsArray[0].ToLower() == "unknown")
-                                    continue;
-
-                                
-                                if (bookInfo.description == null || string.IsNullOrEmpty((string)bookInfo.description) || ((string)bookInfo.description).ToLower() == "unknown")
-                                    continue;
-
-                                
-                                if (bookInfo.industryIdentifiers == null || bookInfo.industryIdentifiers.Count == 0)
-                                    continue;
-
-                                books.Add(new Book
-                                {
-                                    Title = bookInfo.title,
-                                    Author = string.Join(", ", authorsArray),
-                                    ReleaseDate = bookInfo.publishedDate != null ? bookInfo.publishedDate.ToString() : "Unknown",
-                                    ISBN = bookInfo.industryIdentifiers[0].identifier.ToString(),
-                                    ImagePath = imagePath,
-                                    Summary = bookInfo.description.ToString()
-                                });
-
-                                if (books.Count >= 200) break; //  Load 200 books now
-                            }
+                                Title = reader["Name"].ToString(),
+                                Author = reader["Author"].ToString(),
+                                ReleaseDate = reader["Release-Date"].ToString(),
+                                ISBN = reader["ISBN"].ToString(),
+                                Summary = reader["Description"].ToString()
+                                // Image will come from API
+                            });
                         }
-
-                        if (books.Count >= 200) break; //  Stop searching if enough books are found
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error fetching data from API: {ex.Message}");
                     }
                 }
             }
@@ -292,16 +409,68 @@ namespace Librarymanage
         }
 
 
-        private async void SearchButton_Click(object sender, RoutedEventArgs e)
+
+        private List<Book> GetBooksFromDatabase()
         {
-            string query = SearchBox.Text.Trim();
-            if (!string.IsNullOrEmpty(query))
+            List<Book> books = new List<Book>();
+            
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
-                BooksPanel.Children.Clear(); // Clear old books
-                await LoadBooks(query);
+                connection.Open();
+                string query = "SELECT * FROM Books";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        books.Add(new Book
+                        {
+                            Title = reader["Name"].ToString(),
+                            Author = reader["Author"].ToString(),
+                            ReleaseDate = reader["Release-Date"].ToString(),
+                            ISBN = reader["ISBN"].ToString(),
+                            Summary = reader["Description"].ToString()
+                            // No Image in DB, we will get it from API
+                        });
+                    }
+                }
             }
+            return books;
         }
 
+        private async Task<string> GetBookImageFromAPI(string bookTitle)
+        {
+            string imageUrl = "https://via.placeholder.com/150"; // Default placeholder
 
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string url = $"https://www.googleapis.com/books/v1/volumes?q={bookTitle.Replace(" ", "+")}&maxResults=1";
+                    var response = await client.GetAsync(url);
+                    var jsonString = await response.Content.ReadAsStringAsync();
+
+                    dynamic data = JsonConvert.DeserializeObject(jsonString);
+
+                    if (data.items != null && data.items.Count > 0)
+                    {
+                        var bookInfo = data.items[0].volumeInfo;
+
+                        if (bookInfo.imageLinks != null && bookInfo.imageLinks.thumbnail != null)
+                        {
+                            imageUrl = bookInfo.imageLinks.thumbnail.ToString().Replace("http://", "https://");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error fetching image: {ex.Message}");
+                }
+            }
+
+            return imageUrl;
+        }
     }
 }

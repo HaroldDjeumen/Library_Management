@@ -24,9 +24,13 @@
         </Grid>
 
         <Grid Grid.Column="1" x:Name="ContentPanel" Background="White" Margin="2">
-            <TextBlock Text="Welcome to Admin Page" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#4B0082"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Visibility="Collapsed" Text="Welcome to Admin Page" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#4B0082"/>
 
-            <StackPanel x:Name="BookAdminPanel" Visibility="Collapsed" Margin="10">
+            <StackPanel x:Name="BookAdminPanel" Grid.Column="0" Visibility="Visible" Margin="10">
 
                 <!-- API Search Bar -->
                 <StackPanel Orientation="Horizontal" Margin="10">
@@ -35,20 +39,35 @@
                 </StackPanel>
 
                 <!-- API Search Results -->
-                <Border Grid.Row="1" Background="White" Padding="2" Margin="10" BorderBrush="#4B0082" BorderThickness="2" Width="1100" HorizontalAlignment="Left">
-                    <ScrollViewer Height="500" Width="1100" HorizontalAlignment="Left" VerticalScrollBarVisibility="Hidden">
+                <Border Grid.Row="1" Background="White" Padding="2" Margin="10" BorderBrush="#4B0082" BorderThickness="2" Width="Auto" HorizontalAlignment="Left">
+                    <ScrollViewer Height="450" Width="1050" HorizontalAlignment="Left" VerticalScrollBarVisibility="Hidden">
                     <StackPanel x:Name="ApiBooksPanel" />
                 </ScrollViewer>
                 </Border>
 
                 <!-- Database Records Table -->
-                <TextBlock Text="Books in Database" FontSize="20" FontWeight="Bold" Margin="0,20,0,10"/>
+                <TextBlock Text="Books in Database" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" Width="1050" Margin="0,20,0,10"/>
 
-                <ScrollViewer Height="400" Width="1100" HorizontalAlignment="Left" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Height="450" Width="1050" HorizontalAlignment="Left" VerticalScrollBarVisibility="Auto">
                     <StackPanel x:Name="DatabaseBooksPanel" />
                 </ScrollViewer>
 
             </StackPanel>
+            
+                <StackPanel Grid.Column="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="3*" />
+                </Grid.RowDefinitions>
+                <Border Grid.Row="0"  Padding="2" Margin="10"  BorderBrush="#4B0082" BorderThickness="2" Width="Auto" >
+                    <ScrollViewer x:Name="TaskViewer" Height="900" Width="550"   VerticalScrollBarVisibility="Hidden">
+                    </ScrollViewer>
+                </Border>
+           </Grid>
+        </StackPanel>
+        
+            
         </Grid>
     </Grid>
 </Page>
