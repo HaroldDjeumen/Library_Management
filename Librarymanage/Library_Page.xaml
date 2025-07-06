@@ -58,16 +58,36 @@
                     <WrapPanel x:Name="BooksPanel" Margin="10"/>
                 </ScrollViewer>
             </Border>
-            
-            <!--Acount Details and Tags-->
-            <Border Grid.Row="2" Background="White" Padding="10" Margin="10" BorderBrush="#4B0082" BorderThickness="2">
-                <Grid>
-                    <StackPanel>
-                    <TextBlock Text="Name: John Doe" FontSize="16" Margin="0,0,0,5"/>
-                    <TextBlock Text="Email:"/>
+
+            <!-- Horizontal Account Panel -->
+            <Border Grid.Row="2" Background="White" Padding="10" Margin="10" BorderBrush="#4B0082" BorderThickness="2" CornerRadius="8" Height="100">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10">
+
+                    <!-- Circle Image -->
+                    <Ellipse Width="60" Height="60" Stroke="#4B0082" StrokeThickness="2">
+                        <Ellipse.Fill>
+                            <ImageBrush ImageSource="/Images/book1.png"/>
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                    <!-- User Name -->
+                    <TextBlock Text="John Doe" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="5,0"/>
+
+                    <!-- Vertical Separator -->
+                    <Separator VerticalAlignment="Stretch" Width="1" Background="#4B0082" Margin="5,0"/>
+
+                    <!-- Buttons laid horizontally -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5">
+                        <Button Content="Reserved Books" Height="30" MinWidth="110"/>
+                        <Separator VerticalAlignment="Stretch" Width="1" Background="#4B0082"/>
+                        <Button Content="Recommendations" Height="30" MinWidth="120"/>
+                        <Separator VerticalAlignment="Stretch" Width="1" Background="#4B0082"/>
+                        <Button Content="Account Details" Height="30" MinWidth="110"/>
                     </StackPanel>
-                </Grid>
+
+                </StackPanel>
             </Border>
+
         </Grid>
 
         <!-- Book Details -->
