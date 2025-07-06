@@ -5,10 +5,50 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Librarymanage"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
+      d:DesignHeight="1080" d:DesignWidth="1920"
       Title="Admin_Page">
 
-    <Grid>
-        
+    <Grid Background="#9370DB">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Background="#9370DB">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
+                <Button Content="Books" FontSize="20" Width="200" Height="50" Margin="5" Background="#4B0082" Foreground="White" Click="BooksButton_Click"/>
+                <Button Content="Events" FontSize="20" Width="200" Height="50" Margin="5" Background="#4B0082" Foreground="White" Click="EventsButton_Click"/>
+                <Button Content="Members" FontSize="20" Width="200" Height="50" Margin="5" Background="#4B0082" Foreground="White" Click="MembersButton_Click"/>
+                <Button Content="Stats" FontSize="20" Width="200" Height="50" Margin="5" Background="#4B0082" Foreground="White" Click="StatsButton_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Column="1" x:Name="ContentPanel" Background="White" Margin="2">
+            <TextBlock Text="Welcome to Admin Page" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#4B0082"/>
+
+            <StackPanel x:Name="BookAdminPanel" Visibility="Collapsed" Margin="10">
+
+                <!-- API Search Bar -->
+                <StackPanel Orientation="Horizontal" Margin="10">
+                    <TextBox x:Name="AdminSearchBox" Width="300" Height="30" Margin="0,0,10,0" Text="Search for books..." />
+                    <Button Content="Search" Width="100" Click="AdminSearchButton_Click" />
+                </StackPanel>
+
+                <!-- API Search Results -->
+                <Border Grid.Row="1" Background="White" Padding="2" Margin="10" BorderBrush="#4B0082" BorderThickness="2" Width="1100" HorizontalAlignment="Left">
+                    <ScrollViewer Height="500" Width="1100" HorizontalAlignment="Left" VerticalScrollBarVisibility="Hidden">
+                    <StackPanel x:Name="ApiBooksPanel" />
+                </ScrollViewer>
+                </Border>
+
+                <!-- Database Records Table -->
+                <TextBlock Text="Books in Database" FontSize="20" FontWeight="Bold" Margin="0,20,0,10"/>
+
+                <ScrollViewer Height="400" Width="1100" HorizontalAlignment="Left" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="DatabaseBooksPanel" />
+                </ScrollViewer>
+
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>
