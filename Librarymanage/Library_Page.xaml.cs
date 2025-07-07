@@ -34,7 +34,8 @@ namespace Librarymanage
         private Frame _mainFrame;
         private string _currentUsername;
         private Book _selectedBook;
-        private string connectionString = "Data Source=C:\\Users\\hpie9\\Documents\\Librarymanage\\Librarymanage\\Data\\Library.db;Version=3;";
+        private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
+
 
         
         public Library_Page(Frame mainFrame, string username)
