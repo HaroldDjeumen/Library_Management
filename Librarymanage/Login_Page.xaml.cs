@@ -8,7 +8,8 @@ namespace Librarymanage
     public partial class Login_Page : Page
     {
         private Frame _mainFrame;
-        private static string connectionString = "Data Source=C:\\Users\\darre\\OneDrive\\Documents\\files\\Librarymanage\\Data\\Library.db;Version=3;";
+        private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
+
 
         public Login_Page(Frame mainFrame)
         {
