@@ -40,6 +40,17 @@ namespace Librarymanage
                     }
                 };
             }
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand("PRAGMA journal_mode=WAL;", connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+                connection.Close();
+            }
+
         }
 
         private void BooksButton_Click(object sender, RoutedEventArgs e)
@@ -153,7 +164,7 @@ namespace Librarymanage
         }
 
 
-        // Fix for CS1002 and CS0029 errors in the AddBookToDatabase method
+        
         private void AddBookToDatabase(object sender, RoutedEventArgs e)
         {
             Button addButton = sender as Button;
@@ -168,10 +179,13 @@ namespace Librarymanage
                 {
                     // Fix the release date format to allow YYYY-MM-DD and YYYY
                     DateTime releaseDate;
-                    if (DateTime.TryParseExact(selectedBook.ReleaseDate, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out releaseDate) ||
-                        DateTime.TryParseExact(selectedBook.ReleaseDate, "yyyy", null, System.Globalization.DateTimeStyles.None, out releaseDate))
+                    string[] formats = { "yyyy-MM-dd", "yyyy", "d/M/yyyy", "dd/MM/yyyy", "M/d/yyyy", "yyyy-MM" };
+
+                    if (DateTime.TryParseExact(selectedBook.ReleaseDate.Trim(), formats,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out releaseDate))
                     {
-                        cmd.Parameters.AddWithValue("@ReleaseDate", releaseDate);
+                        cmd.Parameters.AddWithValue("@ReleaseDate", releaseDate.ToString("yyyy-MM-dd"));
                     }
                     else
                     {
@@ -189,6 +203,7 @@ namespace Librarymanage
                         cmd.ExecuteNonQuery();
                         MessageBox.Show($"Book '{selectedBook.Title}' added successfully!");
                         LoadBooksFromDatabase(); // Refresh the book list
+                        conn.Close();
                     }
                     catch (Exception ex)
                     {
@@ -204,11 +219,6 @@ namespace Librarymanage
             List<string> queries = new List<string>
     {
         searchQuery,
-        "Science Fiction Novel",
-        "Wimpy Kid",
-        "Kids Books",
-        "Romance Novels",
-        "Mystery Novels",
 
     };
 
@@ -264,11 +274,11 @@ namespace Librarymanage
                                     Summary = bookInfo.description.ToString()
                                 });
 
-                                if (books.Count >= 200) break; //  Load 200 books now
+                                if (books.Count >= 40) break; //  Load 40 books now
                             }
                         }
 
-                        if (books.Count >= 200) break; //  Stop searching if enough books are found
+                        if (books.Count >= 40) break; //  Stop searching if enough books are found
                     }
                     catch (Exception ex)
                     {
@@ -299,7 +309,8 @@ namespace Librarymanage
                         TextBlock bookInfo = new TextBlock
                         {
                             Text = $"{reader["Name"]} by {reader["Author"]}",
-                            Width = 600,
+                            Width = 690,
+                            
                             FontSize = 16
                         };
 
@@ -309,7 +320,8 @@ namespace Librarymanage
                             Content = "Delete",
                             Margin = new Thickness(5),
                             Background = Brushes.Red,
-                            Foreground = Brushes.White
+                            Foreground = Brushes.White,
+                            HorizontalAlignment = HorizontalAlignment.Right
                         };
                         int bookId = Convert.ToInt32(reader["Id"]);
                         deleteButton.Click += (s, e) => DeleteBook(bookId);
@@ -320,7 +332,8 @@ namespace Librarymanage
                             Content = "Modify",
                             Margin = new Thickness(5),
                             Background = Brushes.Orange,
-                            Foreground = Brushes.White
+                            Foreground = Brushes.White,
+                            HorizontalAlignment = HorizontalAlignment.Right
                         };
                         modifyButton.Click += (s, e) => ModifyBook(bookId);
 
@@ -368,7 +381,7 @@ namespace Librarymanage
                         {
                             string name = reader["Name"].ToString();
                             string author = reader["Author"].ToString();
-                            string releaseDate = reader["Release-Date"].ToString();
+                            string releaseDate = reader["Release-Date"].ToString().Trim();
                             string isbn = reader["ISBN"].ToString();
                             string description = reader["Description"].ToString();
                             
@@ -465,11 +478,12 @@ namespace Librarymanage
                     command.Parameters.AddWithValue("@Id", bookId);
 
                     command.ExecuteNonQuery();
+                    connection.Close();
                 }
             }
 
             MessageBox.Show("Book updated successfully.");
-            LoadBooksFromDatabase(); // Refresh the list
+           
         }
 
         
