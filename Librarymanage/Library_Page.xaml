@@ -94,7 +94,7 @@
         <!-- Book Details -->
         <Border Grid.Column="1" Background="#E6E6FA" Padding="20" Margin="10" BorderBrush="#4B0082" BorderThickness="2">
             <ScrollViewer VerticalScrollBarVisibility="Hidden">
-                <StackPanel x:Name="BookDetailsPanel" Visibility="Collapsed">
+                <StackPanel x:Name="BookDetailsPanel" Visibility="Visible">
                     <Image x:Name="BigCoverImage" Width="Auto" Height="350" Margin="0,0,0,20" Stretch="Uniform" />
 
                     <TextBlock x:Name="BookTitle" FontSize="30" FontWeight="Bold" Foreground="#4B0082" Margin="0,0,0,10" TextWrapping="Wrap" />
@@ -114,37 +114,63 @@
                             FontSize="16"
                             FontWeight="Bold"
                             Margin="0,20,0,0"
-                            HorizontalAlignment="Left"
-                            Visibility="Collapsed" />
+                            HorizontalAlignment="Center"
+                            Visibility="Visible" />
 
-                    <Calendar x:Name="ReservationCalendar"
-                              Visibility="Collapsed"
-                              HorizontalAlignment="Left"
+
+                    <StackPanel Margin="0,50,0,20">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Select Reservation Date:"
+                                 FontSize="20"
+                                 FontWeight="Bold"
+                                 FontFamily="Segoe UI"
+                                 Foreground="#4B0082"
+                                 Margin="7,0,0,20" />
+                                <Calendar x:Name="ReservationCalendar"
+                              Visibility="Visible"
+                              HorizontalAlignment="Center"
                               VerticalAlignment="Center"
                               SelectedDatesChanged="ReservationCalendar_SelectedDatesChanged" />
+                            </StackPanel>
 
-                    <Calendar x:Name="ReturnCalendar" 
-                              Visibility="Collapsed" 
-                              HorizontalAlignment="Left" 
+                            <StackPanel Grid.Column = "1">
+                                <TextBlock Text="Select Return Date:"
+                                 FontSize="20"
+                                 FontWeight="Bold"
+                                 FontFamily="Segoe UI"
+                                 Foreground="#4B0082"
+                                 Margin="55,0,0,20" />
+                                <Calendar x:Name="ReturnCalendar" 
+                              Visibility="Visible" 
+                              HorizontalAlignment="Center" 
                               VerticalAlignment="Center" 
                               SelectedDatesChanged="ReturnCalendar_SelectedDatesChanged" />
+                            </StackPanel>
 
 
-                    <TextBlock x:Name="SelectedReservationDateText"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Center"
-                               FontSize="16"
-                               Margin="0,20,0,0" />
+                        </Grid>
+                    </StackPanel>
 
-                    <TextBlock x:Name="ReservationPolicyText"
-                               Text="Reservation Policy:
-- R50 is charged for each week the book is late. Book must be in good condition, otherwise, a R200 fee will be charged."
-                               TextWrapping="Wrap"
-                               FontSize="14"
-                               Foreground="Red"
-                               Margin="0,20,0,0"
-                               Visibility="Collapsed" />
+                    <TextBlock x:Name="ReservationPolicyText1"
+                               TextWrapping="Wrap" FontSize="14" Margin="0,20,0,0"
+                               Text="⚠ Reservation Policy: " FontWeight="Bold" Foreground="DarkOrange"                              
+                               Visibility="Visible" />
 
+                    <TextBlock x:Name="ReservationPolicyText2"
+                               TextWrapping="Wrap" FontSize="14" Visibility="Visible" >
+                               <Run Foreground="Red" Text="R50"/>
+                               <Run Foreground="Black" Text=" is charged for each week the book is late. Book must be in good condition, otherwise, a"/>
+                               <Run Foreground="Red" Text="  R200"/>
+                               <Run Foreground="Black" Language="en-za" Text="fee will be charged."/>
+                    </TextBlock>                   
+                    
                     <Button x:Name="ConfirmReservationButton"
                             Content="Confirm Reservation"
                             Click="ConfirmReservationButton_Click"
@@ -155,7 +181,7 @@
                             FontSize="16"
                             FontWeight="Bold"
                             Margin="0,20,0,0"
-                            Visibility="Collapsed" />
+                            Visibility="Visible" />
                 </StackPanel>
             </ScrollViewer>
         </Border>
