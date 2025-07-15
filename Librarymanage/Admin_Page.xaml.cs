@@ -87,12 +87,6 @@ namespace Librarymanage
         {
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Visible;
-
-            if (StatAdminPanel.Parent is Panel parentPanel)
-            {
-                parentPanel.Children.Remove(StatAdminPanel);
-            }
-
             ContentPanel.Children.Add(StatAdminPanel);
             LoadStatisticsData();
         }
@@ -513,27 +507,20 @@ namespace Librarymanage
 
             Labels = new List<string> { "Today", "Month", "Year" };
 
-            // Pseudocode plan:
-            // 1. Check if GetCountFromQuery for "Day" is returning 0 due to date format mismatch.
-            // 2. Ensure JoinDate and ReservationDate are stored in 'YYYY-MM-DD' format in the database.
-            // 3. If not, update the query to use substrings for date comparison to avoid format issues.
-            // 4. Replace the queries for "Day" with a more robust comparison using substr(JoinDate, 1, 10).
-
-            // Replace the statistics queries in LoadStatisticsData:
-
-            int membersDay = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE substr(JoinDate, 1, 10) = date('now')");
-            int membersMonth = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE substr(JoinDate, 1, 7) = strftime('%Y-%m', 'now')");
-            int membersYear = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE substr(JoinDate, 1, 4) = strftime('%Y', 'now')");
+            // Users table
+            int membersDay = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y-%m-%d', JoinDate) = strftime('%Y-%m-%d', 'now')");
+            int membersMonth = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y-%m', JoinDate) = strftime('%Y-%m', 'now')");
+            int membersYear = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y', JoinDate) = strftime('%Y', 'now')");
 
             // Books table
-            int booksDay = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE substr(JoinDate, 1, 10) = date('now')");
-            int booksMonth = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE substr(JoinDate, 1, 7) = strftime('%Y-%m', 'now')");
-            int booksYear = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE substr(JoinDate, 1, 4) = strftime('%Y', 'now')");
+            int booksDay = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y-%m-%d', JoinDate) = strftime('%Y-%m-%d', 'now')");
+            int booksMonth = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y-%m', JoinDate) = strftime('%Y-%m', 'now')");
+            int booksYear = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y', JoinDate) = strftime('%Y', 'now')");
 
             // Reservations table
-            int reservationsDay = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE substr(ReservationDate, 1, 10) = date('now')");
-            int reservationsMonth = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE substr(ReservationDate, 1, 7) = strftime('%Y-%m', 'now')");
-            int reservationsYear = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE substr(ReservationDate, 1, 4) = strftime('%Y', 'now')");
+            int reservationsDay = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y-%m-%d', ReservationDate) = strftime('%Y-%m-%d', 'now')");
+            int reservationsMonth = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y-%m', ReservationDate) = strftime('%Y-%m', 'now')");
+            int reservationsYear = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y', ReservationDate) = strftime('%Y', 'now')");
 
 
             NewMembersSeries = new SeriesCollection
