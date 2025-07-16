@@ -20,6 +20,7 @@ namespace Librarymanage
         private Frame _mainFrame;
         private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
 
+        public Func<double, string> Formatter { get; set; }
         public SeriesCollection NewMembersSeries { get; set; }
         public SeriesCollection NewBooksSeries { get; set; }
         public SeriesCollection BookReservationsSeries { get; set; }
@@ -549,6 +550,7 @@ namespace Librarymanage
         Values = new ChartValues<int> { reservationsDay, reservationsMonth, reservationsYear }
     }
 };
+            Formatter = value => value.ToString("N0");
 
             DataContext = this;
         }

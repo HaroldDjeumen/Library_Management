@@ -108,7 +108,7 @@
                                         <lvc:Axis Title="Time" Labels="{Binding Labels}" />
                                     </lvc:CartesianChart.AxisX>
                                     <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" />
+                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
                                     </lvc:CartesianChart.AxisY>
                                 </lvc:CartesianChart>
                             </StackPanel>
@@ -123,7 +123,7 @@
                                         <lvc:Axis Title="Time" Labels="{Binding Labels}" />
                                     </lvc:CartesianChart.AxisX>
                                     <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" />
+                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
                                     </lvc:CartesianChart.AxisY>
                                 </lvc:CartesianChart>
                             </StackPanel>
@@ -138,7 +138,7 @@
                                         <lvc:Axis Title="Time" Labels="{Binding Labels}" />
                                     </lvc:CartesianChart.AxisX>
                                     <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" />
+                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
                                     </lvc:CartesianChart.AxisY>
                                 </lvc:CartesianChart>
                             </StackPanel>

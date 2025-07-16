@@ -185,8 +185,8 @@ namespace Librarymanage
 
             // Reset
             ReservationCalendar.Visibility = Visibility.Collapsed;
-            SelectedReservationDateText.Text = "";
-            ReservationPolicyText.Visibility = Visibility.Collapsed;
+            //SelectedReservationDateText.Text = "";
+            //ReservationPolicyText.Visibility = Visibility.Collapsed;
             ConfirmReservationButton.Visibility = Visibility.Collapsed;
 
             // Check if book is already reserved
@@ -246,8 +246,8 @@ namespace Librarymanage
                     return;
                 }
 
-                SelectedReservationDateText.Text = $"Reserved: {reservationDate:dd/MM/yyyy} | Return: {returnDate:dd/MM/yyyy}";
-                ReservationPolicyText.Visibility = Visibility.Visible;
+               // SelectedReservationDateText.Text = $"Reserved: {reservationDate:dd/MM/yyyy} | Return: {returnDate:dd/MM/yyyy}";
+               // ReservationPolicyText.Visibility = Visibility.Visible;
                 ConfirmReservationButton.Visibility = Visibility.Visible;
             }
         }
@@ -280,7 +280,7 @@ namespace Librarymanage
                 ReservationCalendar.Visibility = Visibility.Collapsed;
                 ReturnCalendar.Visibility = Visibility.Collapsed;
                 OpenCalendarButton.Visibility = Visibility.Collapsed;
-                ReservationPolicyText.Visibility = Visibility.Collapsed;
+                //ReservationPolicyText.Visibility = Visibility.Collapsed;
                 BookAvail.Text = "Status: Reserved";
                 BookAvail.Visibility = Visibility.Visible;
 
