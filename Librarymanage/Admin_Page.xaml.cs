@@ -88,6 +88,11 @@ namespace Librarymanage
         {
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Visible;
+            if (StatAdminPanel.Parent is Panel parentPanel)
+        {
+             parentPanel.Children.Remove(StatAdminPanel);
+        }
+
             ContentPanel.Children.Add(StatAdminPanel);
             LoadStatisticsData();
         }
