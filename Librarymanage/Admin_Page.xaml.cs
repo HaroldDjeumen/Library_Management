@@ -5,6 +5,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using LiveCharts;
+using LiveCharts.Wpf;
+using LiveCharts.Defaults;
+using System.Collections.Generic;
+
 namespace Librarymanage
 {
     /// <summary>
@@ -14,6 +19,13 @@ namespace Librarymanage
     {
         private Frame _mainFrame;
         private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
+
+        public Func<double, string> Formatter { get; set; }
+        public SeriesCollection NewMembersSeries { get; set; }
+        public SeriesCollection NewBooksSeries { get; set; }
+        public SeriesCollection BookReservationsSeries { get; set; }
+        public List<string> Labels { get; set; }
+
 
 
         public Admin_Page(Frame mainFrame)
@@ -56,6 +68,7 @@ namespace Librarymanage
         private void BooksButton_Click(object sender, RoutedEventArgs e)
         {
             ContentPanel.Children.Clear();
+            StatAdminPanel.Visibility = Visibility.Collapsed;
             BookAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(BookAdminPanel);
             LoadBooksFromDatabase();
@@ -73,7 +86,15 @@ namespace Librarymanage
 
         private void StatsButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadContent("Statistics Overview");
+            BookAdminPanel.Visibility = Visibility.Collapsed;
+            StatAdminPanel.Visibility = Visibility.Visible;
+            if (StatAdminPanel.Parent is Panel parentPanel)
+        {
+             parentPanel.Children.Remove(StatAdminPanel);
+        }
+
+            ContentPanel.Children.Add(StatAdminPanel);
+            LoadStatisticsData();
         }
 
         private void LoadContent(string contentTitle)
@@ -173,7 +194,7 @@ namespace Librarymanage
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                string insertQuery = "INSERT INTO Books (Name, [Release-Date], Author, ISBN, Description) VALUES (@Name, @ReleaseDate, @Author, @ISBN, @Description)";
+                string insertQuery = "INSERT INTO Books (Name, [Release-Date], Author, ISBN, Description, JoinDate) VALUES (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate)";
 
                 using (SQLiteCommand cmd = new SQLiteCommand(insertQuery, conn))
                 {
@@ -197,11 +218,12 @@ namespace Librarymanage
                     cmd.Parameters.AddWithValue("@Author", selectedBook.Author);
                     cmd.Parameters.AddWithValue("@ISBN", selectedBook.ISBN);
                     cmd.Parameters.AddWithValue("@Description", selectedBook.Summary);
+                    cmd.Parameters.AddWithValue("@JoinDate", DateTime.Now.ToString("yyyy-MM-dd"));
 
                     try
                     {
                         cmd.ExecuteNonQuery();
-                        MessageBox.Show($"Book '{selectedBook.Title}' added successfully!");
+                        //MessageBox.Show($"Book '{selectedBook.Title}' added successfully!");
                         LoadBooksFromDatabase(); // Refresh the book list
                         conn.Close();
                     }
@@ -308,9 +330,9 @@ namespace Librarymanage
                         // Show book name and author
                         TextBlock bookInfo = new TextBlock
                         {
-                            Text = $"{reader["Name"]} by {reader["Author"]}",
+                            Text = $"{reader["Name"]} by {reader["Author"]}, added on {reader["JoinDate"]}",
                             Width = 690,
-                            
+                            TextWrapping = TextWrapping.Wrap,
                             FontSize = 16
                         };
 
@@ -361,7 +383,7 @@ namespace Librarymanage
                 }
             }
 
-            MessageBox.Show("Book deleted.");
+           // MessageBox.Show("Book deleted.");
             LoadBooksFromDatabase(); // Refresh list
         }
 
@@ -486,6 +508,71 @@ namespace Librarymanage
            
         }
 
-        
+        private void LoadStatisticsData()
+        {
+
+            Labels = new List<string> { "Today", "Month", "Year" };
+
+            // Users table
+            int membersDay = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y-%m-%d', JoinDate) = strftime('%Y-%m-%d', 'now')");
+            int membersMonth = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y-%m', JoinDate) = strftime('%Y-%m', 'now')");
+            int membersYear = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y', JoinDate) = strftime('%Y', 'now')");
+
+            // Books table
+            int booksDay = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y-%m-%d', JoinDate) = strftime('%Y-%m-%d', 'now')");
+            int booksMonth = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y-%m', JoinDate) = strftime('%Y-%m', 'now')");
+            int booksYear = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y', JoinDate) = strftime('%Y', 'now')");
+
+            // Reservations table
+            int reservationsDay = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y-%m-%d', ReservationDate) = strftime('%Y-%m-%d', 'now')");
+            int reservationsMonth = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y-%m', ReservationDate) = strftime('%Y-%m', 'now')");
+            int reservationsYear = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y', ReservationDate) = strftime('%Y', 'now')");
+
+
+            NewMembersSeries = new SeriesCollection
+{
+    new ColumnSeries
+    {
+        Title = "New Members",
+        Values = new ChartValues<int> { membersDay, membersMonth, membersYear }
+    }
+};
+
+            NewBooksSeries = new SeriesCollection
+{
+    new ColumnSeries
+    {
+        Title = "New Books",
+        Values = new ChartValues<int> { booksDay, booksMonth, booksYear }
+    }
+};
+
+            BookReservationsSeries = new SeriesCollection
+{
+    new ColumnSeries
+    {
+        Title = "Reservations",
+        Values = new ChartValues<int> { reservationsDay, reservationsMonth, reservationsYear }
+    }
+};
+            Formatter = value => value.ToString("N0");
+
+            DataContext = this;
+        }
+
+        private int GetCountFromQuery(string query)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : 0;
+                }
+            }
+        }
+
+
     }
 }

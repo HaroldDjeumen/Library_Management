@@ -184,7 +184,7 @@ namespace Librarymanage
             BookSummary.Text = book.Summary;
 
             // Reset
-            ReservationCalendar.Visibility = Visibility.Collapsed;
+            CalenderView.Visibility = Visibility.Collapsed;
             SelectedReservationDateText.Text = "";
             ReservationPolicyText.Visibility = Visibility.Collapsed;
             ConfirmReservationButton.Visibility = Visibility.Collapsed;
@@ -212,8 +212,10 @@ namespace Librarymanage
 
         private void OpenCalendarButton_Click(object sender, RoutedEventArgs e)
         {
-            ReservationCalendar.Visibility = Visibility.Visible;
-            ReturnCalendar.Visibility = Visibility.Visible;
+            CalenderView.Visibility = Visibility.Visible;
+
+            ReservationPolicyText.Visibility = Visibility.Visible;
+            
 
             // Limit the selection dates
             ReservationCalendar.DisplayDateStart = DateTime.Now;
@@ -277,14 +279,13 @@ namespace Librarymanage
                 }
 
                 ConfirmReservationButton.Visibility = Visibility.Collapsed;
-                ReservationCalendar.Visibility = Visibility.Collapsed;
-                ReturnCalendar.Visibility = Visibility.Collapsed;
+                CalenderView.Visibility = Visibility.Collapsed;
                 OpenCalendarButton.Visibility = Visibility.Collapsed;
                 ReservationPolicyText.Visibility = Visibility.Collapsed;
                 BookAvail.Text = "Status: Reserved";
                 BookAvail.Visibility = Visibility.Visible;
 
-                MessageBox.Show($"Book '{_selectedBook.Title}' reserved by {_currentUsername} from {reservationDate:dd/MM/yyyy} to {returnDate:dd/MM/yyyy}.");
+               // MessageBox.Show($"Book '{_selectedBook.Title}' reserved by {_currentUsername} from {reservationDate:dd/MM/yyyy} to {returnDate:dd/MM/yyyy}.");
             }
         }
 
