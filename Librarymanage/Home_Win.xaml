@@ -23,7 +23,9 @@
 
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
 
-                    <!-- Title -->
+                <TextBox FontFamily="Segoe MDL2 Assets" Text="&#xE82D;" FontSize="70" IsReadOnly="True" BorderThickness="0" Background="Transparent"  Foreground="#4B0082"  Width="100" Height="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
+
+                <!-- Title -->
                     <TextBlock Text="Down Town Library"
                            FontSize="36"
                            FontWeight="Bold"

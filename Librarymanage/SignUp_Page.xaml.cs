@@ -94,11 +94,13 @@ namespace Librarymanage
                 }
 
                 // Insert the new user
-                string query = "INSERT INTO Users (Username, Password) VALUES (@Username, @Password)";
+                string query = "INSERT INTO Users (Username, Password, JoinDate) VALUES (@Username, @Password, @JoinDate)";
                 using (SQLiteCommand command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Username", username);
                     command.Parameters.AddWithValue("@Password", password);
+                    command.Parameters.AddWithValue("@JoinDate", DateTime.Now.ToString("yyyy-MM-dd"));
+                    
                     command.ExecuteNonQuery();
                 }
             }

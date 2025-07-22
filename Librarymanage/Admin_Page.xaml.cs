@@ -5,6 +5,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using LiveCharts;
+using LiveCharts.Wpf;
+using LiveCharts.Defaults;
+using System.Collections.Generic;
+
 namespace Librarymanage
 {
     /// <summary>
@@ -15,31 +20,20 @@ namespace Librarymanage
         private Frame _mainFrame;
         private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
 
+        public Func<double, string> Formatter { get; set; }
+        public SeriesCollection NewMembersSeries { get; set; }
+        public SeriesCollection NewBooksSeries { get; set; }
+        public SeriesCollection BookReservationsSeries { get; set; }
+        public List<string> Labels { get; set; }
 
+
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Admin_Page(Frame mainFrame)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             InitializeComponent();
             _mainFrame = mainFrame;
-
-            // Make the parent window full screen
-            Window parentWindow = Window.GetWindow(this);
-            if (parentWindow != null)
-            {
-                parentWindow.WindowState = WindowState.Maximized;
-                
-            }
-            else
-            {
-                this.Loaded += (s, e) =>
-                {
-                    var win = Window.GetWindow(this);
-                    if (win != null)
-                    {
-                        win.WindowState = WindowState.Maximized;
-                        
-                    }
-                };
-            }
 
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
@@ -56,6 +50,7 @@ namespace Librarymanage
         private void BooksButton_Click(object sender, RoutedEventArgs e)
         {
             ContentPanel.Children.Clear();
+            StatAdminPanel.Visibility = Visibility.Collapsed;
             BookAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(BookAdminPanel);
             LoadBooksFromDatabase();
@@ -63,17 +58,25 @@ namespace Librarymanage
 
         private void EventsButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadContent("Events Management");
+           
         }
 
         private void MembersButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadContent("Members Management");
+          
         }
 
         private void StatsButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadContent("Statistics Overview");
+            BookAdminPanel.Visibility = Visibility.Collapsed;
+            StatAdminPanel.Visibility = Visibility.Visible;
+            if (StatAdminPanel.Parent is Panel parentPanel)
+        {
+             parentPanel.Children.Remove(StatAdminPanel);
+        }
+
+            ContentPanel.Children.Add(StatAdminPanel);
+            LoadStatisticsData();
         }
 
         private void LoadContent(string contentTitle)
@@ -167,13 +170,15 @@ namespace Librarymanage
         
         private void AddBookToDatabase(object sender, RoutedEventArgs e)
         {
-            Button addButton = sender as Button;
+            Button? addButton = sender as Button;
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Book selectedBook = (Book)addButton.Tag;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                string insertQuery = "INSERT INTO Books (Name, [Release-Date], Author, ISBN, Description) VALUES (@Name, @ReleaseDate, @Author, @ISBN, @Description)";
+                string insertQuery = "INSERT INTO Books (Name, [Release-Date], Author, ISBN, Description, JoinDate) VALUES (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate)";
 
                 using (SQLiteCommand cmd = new SQLiteCommand(insertQuery, conn))
                 {
@@ -181,6 +186,7 @@ namespace Librarymanage
                     DateTime releaseDate;
                     string[] formats = { "yyyy-MM-dd", "yyyy", "d/M/yyyy", "dd/MM/yyyy", "M/d/yyyy", "yyyy-MM" };
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     if (DateTime.TryParseExact(selectedBook.ReleaseDate.Trim(), formats,
                         System.Globalization.CultureInfo.InvariantCulture,
                         System.Globalization.DateTimeStyles.None, out releaseDate))
@@ -192,16 +198,18 @@ namespace Librarymanage
                         MessageBox.Show($"Invalid release date format for book '{selectedBook.Title}'.");
                         return;
                     }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                     cmd.Parameters.AddWithValue("@Name", selectedBook.Title);
                     cmd.Parameters.AddWithValue("@Author", selectedBook.Author);
                     cmd.Parameters.AddWithValue("@ISBN", selectedBook.ISBN);
                     cmd.Parameters.AddWithValue("@Description", selectedBook.Summary);
+                    cmd.Parameters.AddWithValue("@JoinDate", DateTime.Now.ToString("yyyy-MM-dd"));
 
                     try
                     {
                         cmd.ExecuteNonQuery();
-                        MessageBox.Show($"Book '{selectedBook.Title}' added successfully!");
+                        //MessageBox.Show($"Book '{selectedBook.Title}' added successfully!");
                         LoadBooksFromDatabase(); // Refresh the book list
                         conn.Close();
                     }
@@ -232,8 +240,11 @@ namespace Librarymanage
                         var response = await client.GetAsync(Url);
                         var jsonString = await response.Content.ReadAsStringAsync();
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                         dynamic data = JsonConvert.DeserializeObject(jsonString);
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                         if (data.items != null && data.items.Count > 0)
                         {
                             foreach (var item in data.items)
@@ -277,6 +288,7 @@ namespace Librarymanage
                                 if (books.Count >= 40) break; //  Load 40 books now
                             }
                         }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                         if (books.Count >= 40) break; //  Stop searching if enough books are found
                     }
@@ -308,9 +320,9 @@ namespace Librarymanage
                         // Show book name and author
                         TextBlock bookInfo = new TextBlock
                         {
-                            Text = $"{reader["Name"]} by {reader["Author"]}",
-                            Width = 690,
-                            
+                            Text = $"{reader["Name"]} by {reader["Author"]}, added on {reader["JoinDate"]}",
+                            Width = 592,
+                            TextWrapping = TextWrapping.Wrap,
                             FontSize = 16
                         };
 
@@ -361,7 +373,7 @@ namespace Librarymanage
                 }
             }
 
-            MessageBox.Show("Book deleted.");
+           // MessageBox.Show("Book deleted.");
             LoadBooksFromDatabase(); // Refresh list
         }
 
@@ -379,15 +391,19 @@ namespace Librarymanage
                     {
                         if (reader.Read())
                         {
-                            string name = reader["Name"].ToString();
-                            string author = reader["Author"].ToString();
-                            string releaseDate = reader["Release-Date"].ToString().Trim();
-                            string isbn = reader["ISBN"].ToString();
-                            string description = reader["Description"].ToString();
-                            
+                            string? name = reader["Name"].ToString();
+                            string? author = reader["Author"].ToString();
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                            string? releaseDate = reader["Release-Date"].ToString().Trim();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                            string? isbn = reader["ISBN"].ToString();
+                            string? description = reader["Description"].ToString();
+
 
                             // Show an input form
+#pragma warning disable CS8604 // Possible null reference argument.
                             ShowModifyForm(bookId, name, author, releaseDate, isbn, description);
+#pragma warning restore CS8604 // Possible null reference argument.
                         }
                     }
                 }
@@ -486,6 +502,74 @@ namespace Librarymanage
            
         }
 
-        
+        private void LoadStatisticsData()
+        {
+
+            Labels = new List<string> { "Today", "Month", "Year" };
+
+            // Users table
+            int membersDay = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y-%m-%d', JoinDate) = strftime('%Y-%m-%d', 'now')");
+            int membersMonth = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y-%m', JoinDate) = strftime('%Y-%m', 'now')");
+            int membersYear = GetCountFromQuery("SELECT COUNT(*) FROM Users WHERE strftime('%Y', JoinDate) = strftime('%Y', 'now')");
+
+            // Books table
+            int booksDay = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y-%m-%d', JoinDate) = strftime('%Y-%m-%d', 'now')");
+            int booksMonth = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y-%m', JoinDate) = strftime('%Y-%m', 'now')");
+            int booksYear = GetCountFromQuery("SELECT COUNT(*) FROM Books WHERE strftime('%Y', JoinDate) = strftime('%Y', 'now')");
+
+            // Reservations table
+            int reservationsDay = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y-%m-%d', ReservationDate) = strftime('%Y-%m-%d', 'now')");
+            int reservationsMonth = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y-%m', ReservationDate) = strftime('%Y-%m', 'now')");
+            int reservationsYear = GetCountFromQuery("SELECT COUNT(*) FROM Reservations WHERE strftime('%Y', ReservationDate) = strftime('%Y', 'now')");
+
+
+            NewMembersSeries = new SeriesCollection
+{
+    new ColumnSeries
+    {
+        Title = "New Members",
+        Values = new ChartValues<int> { membersDay, membersMonth, membersYear }
+    }
+};
+
+            NewBooksSeries = new SeriesCollection
+{
+    new ColumnSeries
+    {
+        Title = "New Books",
+        Values = new ChartValues<int> { booksDay, booksMonth, booksYear }
+    }
+};
+
+            BookReservationsSeries = new SeriesCollection
+{
+    new ColumnSeries
+    {
+        Title = "Reservations",
+        Values = new ChartValues<int> { reservationsDay, reservationsMonth, reservationsYear }
+    }
+};
+            Formatter = value => value.ToString("N0");
+
+            DataContext = this;
+        }
+
+        private int GetCountFromQuery(string query)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    object result = command.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : 0;
+                }
+            }
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainFrame.Navigate(new Login_Page(_mainFrame));
+        }
     }
 }
