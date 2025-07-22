@@ -22,7 +22,7 @@ namespace Librarymanage
             InitializeComponent();
             
            MainFrame.Navigate(new HomePage(MainFrame));
-            //MainFrame.Navigate(new Admin_Page(MainFrame));
+          
 
 
         }
