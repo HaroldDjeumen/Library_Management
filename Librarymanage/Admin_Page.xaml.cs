@@ -28,7 +28,9 @@ namespace Librarymanage
 
 
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Admin_Page(Frame mainFrame)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             InitializeComponent();
             _mainFrame = mainFrame;
@@ -76,12 +78,12 @@ namespace Librarymanage
 
         private void EventsButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadContent("Events Management");
+           
         }
 
         private void MembersButton_Click(object sender, RoutedEventArgs e)
         {
-            LoadContent("Members Management");
+          
         }
 
         private void StatsButton_Click(object sender, RoutedEventArgs e)
@@ -188,8 +190,10 @@ namespace Librarymanage
         
         private void AddBookToDatabase(object sender, RoutedEventArgs e)
         {
-            Button addButton = sender as Button;
+            Button? addButton = sender as Button;
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             Book selectedBook = (Book)addButton.Tag;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
@@ -202,6 +206,7 @@ namespace Librarymanage
                     DateTime releaseDate;
                     string[] formats = { "yyyy-MM-dd", "yyyy", "d/M/yyyy", "dd/MM/yyyy", "M/d/yyyy", "yyyy-MM" };
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     if (DateTime.TryParseExact(selectedBook.ReleaseDate.Trim(), formats,
                         System.Globalization.CultureInfo.InvariantCulture,
                         System.Globalization.DateTimeStyles.None, out releaseDate))
@@ -213,6 +218,7 @@ namespace Librarymanage
                         MessageBox.Show($"Invalid release date format for book '{selectedBook.Title}'.");
                         return;
                     }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                     cmd.Parameters.AddWithValue("@Name", selectedBook.Title);
                     cmd.Parameters.AddWithValue("@Author", selectedBook.Author);
@@ -254,8 +260,11 @@ namespace Librarymanage
                         var response = await client.GetAsync(Url);
                         var jsonString = await response.Content.ReadAsStringAsync();
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
                         dynamic data = JsonConvert.DeserializeObject(jsonString);
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                         if (data.items != null && data.items.Count > 0)
                         {
                             foreach (var item in data.items)
@@ -299,6 +308,7 @@ namespace Librarymanage
                                 if (books.Count >= 40) break; //  Load 40 books now
                             }
                         }
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                         if (books.Count >= 40) break; //  Stop searching if enough books are found
                     }
@@ -401,15 +411,19 @@ namespace Librarymanage
                     {
                         if (reader.Read())
                         {
-                            string name = reader["Name"].ToString();
-                            string author = reader["Author"].ToString();
-                            string releaseDate = reader["Release-Date"].ToString().Trim();
-                            string isbn = reader["ISBN"].ToString();
-                            string description = reader["Description"].ToString();
-                            
+                            string? name = reader["Name"].ToString();
+                            string? author = reader["Author"].ToString();
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+                            string? releaseDate = reader["Release-Date"].ToString().Trim();
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                            string? isbn = reader["ISBN"].ToString();
+                            string? description = reader["Description"].ToString();
+
 
                             // Show an input form
+#pragma warning disable CS8604 // Possible null reference argument.
                             ShowModifyForm(bookId, name, author, releaseDate, isbn, description);
+#pragma warning restore CS8604 // Possible null reference argument.
                         }
                     }
                 }
