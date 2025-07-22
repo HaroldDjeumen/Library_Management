@@ -16,12 +16,13 @@
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0" Background="#9370DB">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,100,0,0">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,20,0,0">
+                <TextBox FontFamily="Segoe MDL2 Assets" Text="&#xE82D;" FontSize="70" IsReadOnly="True" BorderThickness="0" Background="Transparent"  Foreground="#4B0082"  Width="100" Height="100" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Margin="0,0,0,20"/>
                 <Button Content="Books" FontSize="20" Width="230" Height="50" Background="#9370DB" Foreground="White" Click="BooksButton_Click"/>
                 <Button Content="Events" FontSize="20" Width="230" Height="50"  Background="#9370DB" Foreground="White" Click="EventsButton_Click"/>
                 <Button Content="Members" FontSize="20" Width="230" Height="50" Background="#9370DB" Foreground="White" Click="MembersButton_Click"/>
                 <Button Content="Stats" FontSize="20" Width="230" Height="50" Background="#9370DB" Foreground="White" Click="StatsButton_Click"/>
-                <Button x:Name="Go_Back" Content="Go Back" FontSize="20" Width="230" Height="50" Margin="0,270,0,0" Background="#9370DB" Foreground="White" Click="BackButton_Click"/>
+                <Button x:Name="Go_Back" Content="Go Back" FontSize="20" Width="230" Height="50" Margin="0,230,0,0" Background="#9370DB" Foreground="White" Click="BackButton_Click"/>
             </StackPanel>
         </Grid>
  
