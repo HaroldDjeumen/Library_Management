@@ -12,20 +12,20 @@ namespace Librarymanage
     // Ensure the 'Book' class is defined within the namespace or imported from another namespace  
     public class Book
     {
-        public string Title { get; set; }
-        public string Author { get; set; }
-        public string ReleaseDate { get; set; }
-        public string ISBN { get; set; }
-        public string ImagePath { get; set; }
-        public string Summary { get; set; }
+        public string? Title { get; set; }
+        public string? Author { get; set; }
+        public string? ReleaseDate { get; set; }
+        public string? ISBN { get; set; }
+        public string? ImagePath { get; set; }
+        public string? Summary { get; set; }
     }
 
    
 
     public class Reservation
     {
-        public string Username { get; set; }
-        public string BookTitle { get; set; }
+        public string? Username { get; set; }
+        public string? BookTitle { get; set; }
         public DateTime ReservationDate { get; set; }
     }
 
@@ -37,31 +37,15 @@ namespace Librarymanage
         private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
 
 
-        
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Library_Page(Frame mainFrame, string username)
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         {
             InitializeComponent();
             _mainFrame = mainFrame;
             _currentUsername = username;
             AccountName.Text = username;
-
-            // Make the parent window full screen
-            Window parentWindow = Window.GetWindow(this);
-            if (parentWindow != null)
-            {
-                parentWindow.WindowState = WindowState.Maximized;
-            }
-            else
-            {
-                this.Loaded += (s, e) =>
-                {
-                    var win = Window.GetWindow(this);
-                    if (win != null)
-                    {
-                        win.WindowState = WindowState.Maximized;
-                    }
-                };
-            }
 
             LoadBooks();
             
@@ -92,16 +76,16 @@ namespace Librarymanage
                 {
                     StackPanel bookPanel = new StackPanel
                     {
-                        Width = 150,
-                        Margin = new Thickness(10),
+                        Width = 141,
+                        Margin = new Thickness(0,5,2,0),
                         Cursor = Cursors.Hand
                     };
 
                     Image cover = new Image
                     {
                         Source = new BitmapImage(new Uri(book.ImagePath, UriKind.RelativeOrAbsolute)),
-                        Width = 150,
-                        Height = 200
+                        Width = 120,
+                        Height = 190
                     };
 
                     TextBlock title = new TextBlock
@@ -110,7 +94,8 @@ namespace Librarymanage
                         FontWeight = FontWeights.Bold,
                         TextAlignment = TextAlignment.Center,
                         TextWrapping = TextWrapping.Wrap,
-                        Width = 140
+                        FontSize = 12,
+                        Width = 120
                     };
 
                     bookPanel.Children.Add(cover);
@@ -282,7 +267,7 @@ namespace Librarymanage
                 CalenderView.Visibility = Visibility.Collapsed;
                 OpenCalendarButton.Visibility = Visibility.Collapsed;
                 ReservationPolicyText.Visibility = Visibility.Collapsed;
-                BookAvail.Text = "Status: Reserved";
+                BookAvail.Text = "This book is currently reserved";
                 BookAvail.Visibility = Visibility.Visible;
 
                // MessageBox.Show($"Book '{_selectedBook.Title}' reserved by {_currentUsername} from {reservationDate:dd/MM/yyyy} to {returnDate:dd/MM/yyyy}.");
@@ -345,16 +330,16 @@ namespace Librarymanage
 
                     StackPanel bookPanel = new StackPanel
                     {
-                        Width = 150,
-                        Margin = new Thickness(10),
+                        Width = 141,
+                        Margin = new Thickness(0,5,2,0),
                         Cursor = Cursors.Hand
                     };
 
                     Image cover = new Image
                     {
                         Source = new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute)),
-                        Width = 150,
-                        Height = 200
+                        Width = 120,
+                        Height = 190
                     };
 
                     TextBlock title = new TextBlock
@@ -363,7 +348,7 @@ namespace Librarymanage
                         FontWeight = FontWeights.Bold,
                         TextAlignment = TextAlignment.Center,
                         TextWrapping = TextWrapping.Wrap,
-                        Width = 140
+                        Width = 120
                     };
 
                     book.ImagePath = imagePath;
@@ -476,6 +461,11 @@ namespace Librarymanage
             }
 
             return imageUrl;
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainFrame.Navigate(new Login_Page(_mainFrame));
         }
     }
 }
