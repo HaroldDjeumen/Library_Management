@@ -17,19 +17,22 @@
 
         <Grid Grid.Column="0" Background="#9370DB">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,100,0,0">
-                <Button Content="Books" FontSize="20" Width="200" Height="50" Margin="5" Background="#9370DB" Foreground="White" Click="BooksButton_Click"/>
-                <Button Content="Events" FontSize="20" Width="200" Height="50" Margin="5" Background="#9370DB" Foreground="White" Click="EventsButton_Click"/>
-                <Button Content="Members" FontSize="20" Width="200" Height="50" Margin="5" Background="#9370DB" Foreground="White" Click="MembersButton_Click"/>
-                <Button Content="Stats" FontSize="20" Width="200" Height="50" Margin="5" Background="#9370DB" Foreground="White" Click="StatsButton_Click"/>
+                <Button Content="Books" FontSize="20" Width="230" Height="50" Background="#9370DB" Foreground="White" Click="BooksButton_Click"/>
+                <Button Content="Events" FontSize="20" Width="230" Height="50"  Background="#9370DB" Foreground="White" Click="EventsButton_Click"/>
+                <Button Content="Members" FontSize="20" Width="230" Height="50" Background="#9370DB" Foreground="White" Click="MembersButton_Click"/>
+                <Button Content="Stats" FontSize="20" Width="230" Height="50" Background="#9370DB" Foreground="White" Click="StatsButton_Click"/>
+                <Button x:Name="Go_Back" Content="Go Back" FontSize="20" Width="230" Height="50" Margin="0,270,0,0" Background="#9370DB" Foreground="White" Click="BackButton_Click"/>
             </StackPanel>
         </Grid>
+ 
+        
+        <Grid Grid.Column="1" x:Name="ContentPanel" Background="White" Margin="3" >
 
-        <Grid Grid.Column="1" x:Name="ContentPanel" Background="White" Margin="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock Visibility="Collapsed" Text="Welcome to Admin Page" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#4B0082"/>
+            <TextBlock Visibility="Visible" Text="Welcome to Admin Page" FontSize="32" HorizontalAlignment="Center" Margin="190,0,0,0" VerticalAlignment="Center" Foreground="#4B0082"  Width="357"/>
 
             <ScrollViewer x:Name="BookAdminPanel" Grid.Column="0" Visibility="Collapsed"  VerticalScrollBarVisibility="Visible" Grid.ColumnSpan="2">
                 <Grid>

@@ -22,8 +22,23 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Search Bar -->
-            <Border Grid.Row="0" Background="#E6E6FA" Margin="5" BorderBrush="#4B0082" BorderThickness="2" CornerRadius="5,0,0,0">
+            <!-- Search Bar and Back Button -->
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                       <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Width="70">
+                        <Border  Background="#E6E6FA" Margin="5" BorderBrush="#4B0082" BorderThickness="2" CornerRadius="5,0,0,0">
+                            <Button Background="#E6E6FA" FontFamily="Segoe MDL2 Assets" Content="" Click="BackButton_Click" FontSize="25">
+
+                            </Button>
+                        </Border>
+                    </Grid>
+                    
+            <Border Grid.Row="0" Grid.Column="1" Background="#E6E6FA" Margin="5" BorderBrush="#4B0082" BorderThickness="2" >
                 <Grid Margin="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -50,6 +65,8 @@
                             Grid.Column="1" />
                 </Grid>
             </Border>
+                </Grid>
+            </StackPanel>
 
             <!-- Book Panel -->
             <Border Grid.Row="1" Background="#E6E6FA" Padding="2" Margin="5" BorderBrush="#4B0082" BorderThickness="2">
@@ -179,7 +196,7 @@
                                TextWrapping="Wrap" FontSize="13" Visibility="Visible" >
                                <Run Foreground="Red" Text="R50"/>
                                <Run Foreground="Black" Text=" is charged for each week the book is late. Book must be in good condition, otherwise, a"/>
-                               <Run Foreground="Red" Text="  R200"/>
+                               <Run Foreground="Red" Text=" R200"/>
                                <Run Foreground="Black" Language="en-za" Text="fee will be charged."/>
                         </TextBlock>
                     </StackPanel>

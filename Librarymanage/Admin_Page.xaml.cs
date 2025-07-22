@@ -567,6 +567,9 @@ namespace Librarymanage
             }
         }
 
-
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainFrame.Navigate(new Login_Page(_mainFrame));
+        }
     }
 }

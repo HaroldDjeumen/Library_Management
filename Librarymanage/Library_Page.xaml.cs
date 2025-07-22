@@ -267,7 +267,7 @@ namespace Librarymanage
                 CalenderView.Visibility = Visibility.Collapsed;
                 OpenCalendarButton.Visibility = Visibility.Collapsed;
                 ReservationPolicyText.Visibility = Visibility.Collapsed;
-                BookAvail.Text = "Status: Reserved";
+                BookAvail.Text = "This book is currently reserved";
                 BookAvail.Visibility = Visibility.Visible;
 
                // MessageBox.Show($"Book '{_selectedBook.Title}' reserved by {_currentUsername} from {reservationDate:dd/MM/yyyy} to {returnDate:dd/MM/yyyy}.");
@@ -330,16 +330,16 @@ namespace Librarymanage
 
                     StackPanel bookPanel = new StackPanel
                     {
-                        Width = 150,
-                        Margin = new Thickness(10),
+                        Width = 141,
+                        Margin = new Thickness(0,5,2,0),
                         Cursor = Cursors.Hand
                     };
 
                     Image cover = new Image
                     {
                         Source = new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute)),
-                        Width = 150,
-                        Height = 200
+                        Width = 120,
+                        Height = 190
                     };
 
                     TextBlock title = new TextBlock
@@ -348,7 +348,7 @@ namespace Librarymanage
                         FontWeight = FontWeights.Bold,
                         TextAlignment = TextAlignment.Center,
                         TextWrapping = TextWrapping.Wrap,
-                        Width = 140
+                        Width = 120
                     };
 
                     book.ImagePath = imagePath;
@@ -461,6 +461,11 @@ namespace Librarymanage
             }
 
             return imageUrl;
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            _mainFrame.Navigate(new Login_Page(_mainFrame));
         }
     }
 }
