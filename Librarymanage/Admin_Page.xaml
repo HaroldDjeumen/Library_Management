@@ -6,7 +6,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Librarymanage"
       mc:Ignorable="d" 
-      d:DesignHeight="1010" d:DesignWidth="1920"
+      d:DesignHeight="661" d:DesignWidth="984"
       Title="Admin_Page">
 
     <Grid Background="#9370DB">
@@ -16,11 +16,11 @@
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0" Background="#9370DB">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
-                <Button Content="Books" FontSize="20" Width="200" Height="50" Margin="5" Background="#4B0082" Foreground="White" Click="BooksButton_Click"/>
-                <Button Content="Events" FontSize="20" Width="200" Height="50" Margin="5" Background="#4B0082" Foreground="White" Click="EventsButton_Click"/>
-                <Button Content="Members" FontSize="20" Width="200" Height="50" Margin="5" Background="#4B0082" Foreground="White" Click="MembersButton_Click"/>
-                <Button Content="Stats" FontSize="20" Width="200" Height="50" Margin="5" Background="#4B0082" Foreground="White" Click="StatsButton_Click"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,100,0,0">
+                <Button Content="Books" FontSize="20" Width="200" Height="50" Margin="5" Background="#9370DB" Foreground="White" Click="BooksButton_Click"/>
+                <Button Content="Events" FontSize="20" Width="200" Height="50" Margin="5" Background="#9370DB" Foreground="White" Click="EventsButton_Click"/>
+                <Button Content="Members" FontSize="20" Width="200" Height="50" Margin="5" Background="#9370DB" Foreground="White" Click="MembersButton_Click"/>
+                <Button Content="Stats" FontSize="20" Width="200" Height="50" Margin="5" Background="#9370DB" Foreground="White" Click="StatsButton_Click"/>
             </StackPanel>
         </Grid>
 
@@ -31,23 +31,24 @@
             </Grid.ColumnDefinitions>
             <TextBlock Visibility="Collapsed" Text="Welcome to Admin Page" FontSize="32" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#4B0082"/>
 
-            <StackPanel x:Name="BookAdminPanel" Grid.Column="0" Visibility="Collapsed" Margin="10">
+            <ScrollViewer x:Name="BookAdminPanel" Grid.Column="0" Visibility="Collapsed"  VerticalScrollBarVisibility="Visible" Grid.ColumnSpan="2">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Orientation="Vertical" Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Vertical" Margin="10">
+                        <TextBlock Text="Add Book to DataBase" FontSize="20" FontWeight="Bold" Margin="0,0,0,5" HorizontalAlignment="Left"/>
                         <!-- API Search Bar -->
-                        <StackPanel Orientation="Horizontal" Margin="10">
-                            <TextBox x:Name="AdminSearchBox" Width="300" Height="30" Margin="0,0,10,0" Text="Search for books..." />
+                        <StackPanel Orientation="Horizontal" Margin="0,10">
+                            <TextBox x:Name="AdminSearchBox" Width="250" Height="30" Margin="0,0,5,0" Text="" />
                             <Button Content="Search" Width="100" Click="AdminSearchButton_Click" />
                         </StackPanel>
 
                         <!-- API Search Results -->
-                        <Border Grid.Row="1" Background="White" Padding="2" Margin="0,10,10,0" BorderBrush="#4B0082" BorderThickness="2" Width="Auto" HorizontalAlignment="Left">
-                            
-                            <ScrollViewer Height="900" Width="800" HorizontalAlignment="Center" VerticalScrollBarVisibility="Hidden">
+                        <Border Grid.Row="1" Background="White" Padding="2" Margin="0,5,10,0" BorderBrush="#4B0082" BorderThickness="2" Width="Auto" HorizontalAlignment="Left">
+
+                            <ScrollViewer Height="400" Width="700" HorizontalAlignment="Center" VerticalScrollBarVisibility="Hidden">
                                 <StackPanel x:Name="ApiBooksPanel" />
                             </ScrollViewer>
                         </Border>
@@ -55,13 +56,13 @@
 
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1">
+                    <StackPanel Grid.Row="1">
                         <Grid>
-                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="10,10,10,5">
-                                <TextBlock Text="Books in Database" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" Width="780" Margin="5,20,0,10"/>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="10,10,10,5">
+                                <TextBlock Text="Books in Database" FontSize="20" FontWeight="Bold" HorizontalAlignment="Left" Width="650" Margin="0,20,0,10"/>
 
                                 <Border Background="White" Padding="2" Margin="0,5,0,0" BorderBrush="#4B0082" BorderThickness="2" Width="Auto" >
-                                    <ScrollViewer Height="900" Width="800" HorizontalAlignment="Left" VerticalScrollBarVisibility="Hidden">
+                                    <ScrollViewer Height="400" Width="700" HorizontalAlignment="Left" VerticalScrollBarVisibility="Hidden">
                                         <StackPanel x:Name="DatabaseBooksPanel" />
                                     </ScrollViewer>
                                 </Border>
@@ -71,81 +72,83 @@
                     </StackPanel>
 
                 </Grid>
-            </StackPanel>
+            </ScrollViewer>
 
-            <StackPanel x:Name="StatAdminPanel" Grid.Column="1" Visibility="Visible" Margin="10">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*" />
-                        <ColumnDefinition Width="1*" />
-                    </Grid.ColumnDefinitions>
+            <ScrollViewer VerticalScrollBarVisibility="Hidden" Width="750" Grid.Column="1" x:Name="StatAdminPanel" Visibility="Collapsed">
+                <StackPanel Visibility="Visible" Margin="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
 
-                    <!-- Left side with details -->
-                    <StackPanel Grid.Column="0" Margin="10" Orientation="Vertical">
-                        <TextBlock Text="Statistics Details" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" />
+                        <!-- Left side with details -->
+                        <StackPanel Grid.Column="0" Margin="10" Orientation="Vertical">
+                            <TextBlock Text="Statistics Details" FontSize="24" FontWeight="Bold" Margin="0,0,0,20" />
 
-                        <GroupBox Header="New Members Details" Margin="0,0,0,10">
-                            <TextBlock Text="Shows daily, monthly, and yearly new member joins." TextWrapping="Wrap" Margin="5" />
-                        </GroupBox>
+                            <GroupBox Header="New Members Details" Margin="0,0,0,10">
+                                <TextBlock Text="Shows daily, monthly, and yearly new member joins." TextWrapping="Wrap" Margin="5" />
+                            </GroupBox>
 
-                        <GroupBox Header="New Books Details" Margin="0,0,0,10">
-                            <TextBlock Text="Shows how many new books were added by day, month, and year." TextWrapping="Wrap" Margin="5" />
-                        </GroupBox>
+                            <GroupBox Header="New Books Details" Margin="0,0,0,10">
+                                <TextBlock Text="Shows how many new books were added by day, month, and year." TextWrapping="Wrap" Margin="5" />
+                            </GroupBox>
 
-                        <GroupBox Header="Reservations Details">
-                            <TextBlock Text="Shows daily, monthly, and yearly book reservations." TextWrapping="Wrap" Margin="5" />
-                        </GroupBox>
-                    </StackPanel>
+                            <GroupBox Header="Reservations Details">
+                                <TextBlock Text="Shows daily, monthly, and yearly book reservations." TextWrapping="Wrap" Margin="5" />
+                            </GroupBox>
+                        </StackPanel>
 
-                    <!-- Right side with graphs -->
-                    <StackPanel Grid.Column="1" Margin="10" Orientation="Vertical" >
-                        <!-- New Members Graph -->
-                        <Border BorderBrush="#4B0082" BorderThickness="2" Margin="0,0,0,20" Padding="10">
-                            <StackPanel>
-                                <TextBlock Text="New Members Over Time" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" />
-                                <lvc:CartesianChart Series="{Binding NewMembersSeries}" Height="200">
-                                    <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="Time" Labels="{Binding Labels}" />
-                                    </lvc:CartesianChart.AxisX>
-                                    <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
-                                    </lvc:CartesianChart.AxisY>
-                                </lvc:CartesianChart>
-                            </StackPanel>
-                        </Border>
+                        <!-- Right side with graphs -->
+                        <StackPanel Grid.Column="1" Margin="10" Orientation="Vertical" >
+                            <!-- New Members Graph -->
+                            <Border BorderBrush="#4B0082" BorderThickness="2" Margin="0,0,0,20" Padding="10">
+                                <StackPanel>
+                                    <TextBlock Text="New Members Over Time" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" />
+                                    <lvc:CartesianChart Series="{Binding NewMembersSeries}" Height="160">
+                                        <lvc:CartesianChart.AxisX>
+                                            <lvc:Axis Title="Time" Labels="{Binding Labels}" />
+                                        </lvc:CartesianChart.AxisX>
+                                        <lvc:CartesianChart.AxisY>
+                                            <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
+                                        </lvc:CartesianChart.AxisY>
+                                    </lvc:CartesianChart>
+                                </StackPanel>
+                            </Border>
 
-                        <!-- New Books Graph -->
-                        <Border BorderBrush="#4B0082" BorderThickness="2" Margin="0,0,0,20" Padding="10">
-                            <StackPanel>
-                                <TextBlock Text="New Books Over Time" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" />
-                                <lvc:CartesianChart Series="{Binding NewBooksSeries}" Height="200">
-                                    <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="Time" Labels="{Binding Labels}" />
-                                    </lvc:CartesianChart.AxisX>
-                                    <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
-                                    </lvc:CartesianChart.AxisY>
-                                </lvc:CartesianChart>
-                            </StackPanel>
-                        </Border>
+                            <!-- New Books Graph -->
+                            <Border BorderBrush="#4B0082" BorderThickness="2" Margin="0,0,0,20" Padding="10">
+                                <StackPanel>
+                                    <TextBlock Text="New Books Over Time" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" />
+                                    <lvc:CartesianChart Series="{Binding NewBooksSeries}" Height="160">
+                                        <lvc:CartesianChart.AxisX>
+                                            <lvc:Axis Title="Time" Labels="{Binding Labels}" />
+                                        </lvc:CartesianChart.AxisX>
+                                        <lvc:CartesianChart.AxisY>
+                                            <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
+                                        </lvc:CartesianChart.AxisY>
+                                    </lvc:CartesianChart>
+                                </StackPanel>
+                            </Border>
 
-                        <!-- Reservations Graph -->
-                        <Border BorderBrush="#4B0082" BorderThickness="2" Padding="10">
-                            <StackPanel>
-                                <TextBlock Text="Books Reserved Over Time" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" />
-                                <lvc:CartesianChart Series="{Binding BookReservationsSeries}" Height="200">
-                                    <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="Time" Labels="{Binding Labels}" />
-                                    </lvc:CartesianChart.AxisX>
-                                    <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
-                                    </lvc:CartesianChart.AxisY>
-                                </lvc:CartesianChart>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </Grid>
-            </StackPanel>
+                            <!-- Reservations Graph -->
+                            <Border BorderBrush="#4B0082" BorderThickness="2" Padding="10">
+                                <StackPanel>
+                                    <TextBlock Text="Books Reserved Over Time" FontSize="18" FontWeight="Bold" Margin="0,0,0,10" />
+                                    <lvc:CartesianChart Series="{Binding BookReservationsSeries}" Height="160">
+                                        <lvc:CartesianChart.AxisX>
+                                            <lvc:Axis Title="Time" Labels="{Binding Labels}" />
+                                        </lvc:CartesianChart.AxisX>
+                                        <lvc:CartesianChart.AxisY>
+                                            <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
+                                        </lvc:CartesianChart.AxisY>
+                                    </lvc:CartesianChart>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
 
 
 

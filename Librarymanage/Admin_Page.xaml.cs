@@ -35,26 +35,6 @@ namespace Librarymanage
             InitializeComponent();
             _mainFrame = mainFrame;
 
-            // Make the parent window full screen
-            Window parentWindow = Window.GetWindow(this);
-            if (parentWindow != null)
-            {
-                parentWindow.WindowState = WindowState.Maximized;
-                
-            }
-            else
-            {
-                this.Loaded += (s, e) =>
-                {
-                    var win = Window.GetWindow(this);
-                    if (win != null)
-                    {
-                        win.WindowState = WindowState.Maximized;
-                        
-                    }
-                };
-            }
-
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
@@ -341,7 +321,7 @@ namespace Librarymanage
                         TextBlock bookInfo = new TextBlock
                         {
                             Text = $"{reader["Name"]} by {reader["Author"]}, added on {reader["JoinDate"]}",
-                            Width = 690,
+                            Width = 592,
                             TextWrapping = TextWrapping.Wrap,
                             FontSize = 16
                         };
