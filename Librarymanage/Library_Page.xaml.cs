@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace Librarymanage
@@ -24,9 +25,11 @@ namespace Librarymanage
 
     public class Reservation
     {
+        public int ReservationId { get; set; }
         public string? Username { get; set; }
         public string? BookTitle { get; set; }
-        public DateTime ReservationDate { get; set; }
+        public string? ReservationDate { get; set; }
+        public string? ReturnDate { get; set; }
     }
 
     public partial class Library_Page : Page
@@ -34,6 +37,7 @@ namespace Librarymanage
         private Frame _mainFrame;
         private string _currentUsername;
         private Book _selectedBook;
+        private Reservation _selectedReservation;
         private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
 
 
@@ -48,9 +52,9 @@ namespace Librarymanage
             AccountName.Text = username;
 
             LoadBooks();
+            BooksPanel.Visibility = Visibility.Visible;
+           
             
-
-            // Fix: Pass a valid book title to ReserveBook
             if (_selectedBook != null)
             {
                 ReserveBook(_selectedBook.Title);
@@ -467,5 +471,199 @@ namespace Librarymanage
         {
             _mainFrame.Navigate(new Login_Page(_mainFrame));
         }
+
+        private void Accountdetail_clicked(object sender, RoutedEventArgs e)
+        {
+            ReservePanel.Visibility = Visibility.Collapsed;
+            BooksPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void Library_clicked(object sender, RoutedEventArgs e)
+        {
+            LoadBooks();
+            ReservePanel.Visibility = Visibility.Collapsed;
+            BooksPanel.Visibility = Visibility.Visible; // <- Show books panel
+        }
+
+        private void Reservation_clicked(object sender, RoutedEventArgs e)
+        {
+            BooksPanel.Visibility = Visibility.Collapsed;
+            ReservePanel.Visibility = Visibility.Visible; // <- Show reserve panel
+            LoadBooksFromDatabase(); // <- Load reserved books
+        }
+
+
+        private void LoadBooksFromDatabase()
+        {
+           // ReservePanel.Children.Clear(); // Clear old items
+
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM Reservations WHERE Username = @Username";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", _currentUsername);
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            int reservationId = Convert.ToInt32(reader["Id"]);
+                            string bookTitle = reader["BookTitle"].ToString();
+                            string reservationDate = reader["ReservationDate"].ToString();
+                            string returnDate = reader["ReturnDate"].ToString();
+
+                            // Create card border
+                            Border card = new Border
+                            {
+                                Background = Brushes.White,
+                                BorderBrush = Brushes.Gray,
+                                BorderThickness = new Thickness(1),
+                                CornerRadius = new CornerRadius(5),
+                                Margin = new Thickness(5),
+                                Padding = new Thickness(10),
+                                Width = 276
+                            };
+
+                            StackPanel content = new StackPanel();
+
+                            TextBlock bookInfo = new TextBlock
+                            {
+                                Text = $"Book: {bookTitle}\nReserved from: {reservationDate} To: {returnDate}",
+                                TextWrapping = TextWrapping.Wrap,
+                                FontSize = 14,
+                                Margin = new Thickness(0, 0, 0, 5)
+                            };
+
+                            // Modify button
+                            Button modifyButton = new Button
+                            {
+                                Content = "Edit Dates",
+                                Margin = new Thickness(0, 5, 0, 5),
+                                Background = Brushes.Orange,
+                                Foreground = Brushes.White
+                            };
+                            modifyButton.Click += (s, e) =>
+                            {
+                                ModifyReservationDates(reservationId, reservationDate, returnDate);
+                                LoadBooksFromDatabase(); // Refresh after edit
+                            };
+
+                            // Delete button
+                            Button deleteButton = new Button
+                            {
+                                Content = "Delete",
+                                Margin = new Thickness(0, 5, 0, 5),
+                                Background = Brushes.Red,
+                                Foreground = Brushes.White
+                            };
+                            deleteButton.Click += (s, e) =>
+                            {
+                                DeleteBook(reservationId);
+                                LoadBooksFromDatabase(); // Refresh after delete
+                            };
+
+                            content.Children.Add(bookInfo);
+                            content.Children.Add(modifyButton);
+                            content.Children.Add(deleteButton);
+
+                            card.Child = content;
+
+                            ReservePanel.Children.Add(card);
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+        private void DeleteBook(int reservationId)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "DELETE FROM Reservations WHERE Id = @Id";
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", reservationId);
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            // MessageBox.Show("Book deleted.");
+            LoadBooksFromDatabase(); // Refresh list
+        }
+
+
+        private void ModifyReservationDates(int reservationId, string reservationDate, string returnDate)
+        {
+            Window dateWindow = new Window
+            {
+                Title = "Edit Reservation Dates",
+                Width = 300,
+                Height = 250,
+                Background = Brushes.White,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                ResizeMode = ResizeMode.NoResize
+            };
+
+            StackPanel panel = new StackPanel { Margin = new Thickness(20) };
+
+            TextBox reservationBox = new TextBox { Text = reservationDate, Margin = new Thickness(0, 10, 0, 10) };
+            TextBox returnBox = new TextBox { Text = returnDate, Margin = new Thickness(0, 0, 0, 10) };
+
+            Button saveButton = new Button
+            {
+                Content = "Save",
+                Background = Brushes.Green,
+                Foreground = Brushes.White,
+                Width = 100,
+                Margin = new Thickness(0, 10, 0, 0),
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            saveButton.Click += (s, e) =>
+            {
+                UpdateDatesOnly(reservationId, reservationBox.Text, returnBox.Text);
+                dateWindow.Close();
+            };
+
+            panel.Children.Add(new TextBlock { Text = "Reservation Date:" });
+            panel.Children.Add(reservationBox);
+            panel.Children.Add(new TextBlock { Text = "Return Date:" });
+            panel.Children.Add(returnBox);
+            panel.Children.Add(saveButton);
+
+            dateWindow.Content = panel;
+            dateWindow.ShowDialog();
+        }
+
+
+        private void UpdateDatesOnly(int reservationId, string reservationDate, string returnDate)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"UPDATE Reservations 
+                         SET ReservationDate = @ReservationDate, ReturnDate = @ReturnDate 
+                         WHERE Id = @Id";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ReservationDate", reservationDate);
+                    command.Parameters.AddWithValue("@ReturnDate", returnDate);
+                    command.Parameters.AddWithValue("@Id", reservationId);
+
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            MessageBox.Show("Reservation updated.");
+        }
+
+       
     }
 }

@@ -70,11 +70,17 @@
 
             <!-- Book Panel -->
             <Border Grid.Row="1" Background="#E6E6FA" Padding="2" Margin="5" BorderBrush="#4B0082" BorderThickness="2">
-                <ScrollViewer x:Name="bookPanel" 
-                              VerticalScrollBarVisibility="Hidden">
-                    <WrapPanel x:Name="BooksPanel" />
+                <ScrollViewer x:Name="bookPanel" VerticalScrollBarVisibility="Hidden">
+                    <StackPanel>
+                    <WrapPanel x:Name="BooksPanel" Visibility="Collapsed"/>
+                    <WrapPanel x:Name="ReservePanel" Visibility="Collapsed"/>
+                    <WrapPanel x:Name="AccountPanel" Visibility="Collapsed"/>
+                    </StackPanel>
                 </ScrollViewer>
             </Border>
+
+           
+            
 
             <!-- Horizontal Account Panel -->
             <Border Grid.Row="2" Background="#E6E6FA" Padding="1" Margin="5" BorderBrush="#4B0082" BorderThickness="2" Height="Auto" CornerRadius="0,0,0,5">
@@ -98,9 +104,9 @@
                     <!-- Buttons -->
                     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Grid.Column="2">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <Button Content="Reserved Books" FontSize="12" FontWeight="Bold" Background="#4B0082" Foreground="White" Height="30" Width="Auto" Margin="5,5"  Padding="5"/>
-                            <Button Content="Recommendations" FontSize="12" FontWeight="Bold" Background="#4B0082" Foreground="White" Height="30" Width="Auto" Margin="5,5" Padding="5"/>
-                            <Button Content="Account Details" FontSize="12" FontWeight="Bold" Background="#4B0082" Foreground="White" Height="30" Width="Auto" Margin="5,5" Padding="5"/>
+                            <Button x:Name="Reservation_Details" Content="Reserved Books" FontSize="12" FontWeight="Bold" Background="#4B0082" Foreground="White" Height="30" Width="Auto" Margin="5,5"  Padding="5" Click="Reservation_clicked"/>
+                            <Button x:Name="Library" Content="Libray" FontSize="12" FontWeight="Bold" Background="#4B0082" Foreground="White" Height="30" Width="Auto" Margin="5,5" Padding="5" Click="Library_clicked"/>
+                            <Button x:Name="Account_Details" Content="Account Details" FontSize="12" FontWeight="Bold" Background="#4B0082" Foreground="White" Height="30" Width="Auto" Margin="5,5" Padding="5" Click="Accountdetail_clicked"/>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
@@ -144,7 +150,7 @@
                             </Grid.ColumnDefinitions>
 
 
-                            <StackPanel Grid.Column="0">
+                            <StackPanel Grid.Column="0" Margin="3" HorizontalAlignment="Center">
                                 <TextBlock Text="Select Reservation Date:"
                                  FontSize="13"
                                  FontWeight="Bold"
@@ -158,10 +164,10 @@
                                           Visibility="Visible"
                                           VerticalAlignment="Center"
                                           SelectedDatesChanged="ReservationCalendar_SelectedDatesChanged"
-                                          Width="150"/>
+                                          Width="170"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column = "1">
+                            <StackPanel Grid.Column = "1" Margin="3" HorizontalAlignment="Center">
                                 <TextBlock Text="Select Return Date:"
                                  FontSize="13"
                                  FontWeight="Bold"
@@ -174,7 +180,7 @@
                                           HorizontalAlignment="Center" 
                                           VerticalAlignment="Center" 
                                           SelectedDatesChanged="ReturnCalendar_SelectedDatesChanged"
-                                          Width="150"/>
+                                          Width="170"/>
                             </StackPanel>
 
 
