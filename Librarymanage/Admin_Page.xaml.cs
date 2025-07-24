@@ -68,6 +68,7 @@ namespace Librarymanage
 
         private void StatsButton_Click(object sender, RoutedEventArgs e)
         {
+            ContentPanel.Children.Clear();
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Visible;
             if (StatAdminPanel.Parent is Panel parentPanel)
