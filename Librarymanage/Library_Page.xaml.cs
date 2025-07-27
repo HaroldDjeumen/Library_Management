@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Data.SQLite;
 using System.IO;
-using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,6 +18,8 @@ namespace Librarymanage
         public string? ISBN { get; set; }
         public string? ImagePath { get; set; }
         public string? Summary { get; set; }
+        public BitmapImage ImageBitmap { get; set; }
+
     }
 
    
@@ -69,28 +70,30 @@ namespace Librarymanage
 
             var tasks = books.Select(async book =>
             {
-                // Get image from API
-                string imageUrl = await GetBookImageFromAPI(book.Title);
-
-                // Set image to the book object
-                book.ImagePath = imageUrl;
-
-                // UI updates must be on the UI thread
-                Dispatcher.Invoke(() =>
+                await Dispatcher.InvokeAsync(() =>
                 {
                     StackPanel bookPanel = new StackPanel
                     {
                         Width = 141,
-                        Margin = new Thickness(0,5,2,0),
+                        Margin = new Thickness(0, 5, 2, 0),
                         Cursor = Cursors.Hand
                     };
 
                     Image cover = new Image
                     {
-                        Source = new BitmapImage(new Uri(book.ImagePath, UriKind.RelativeOrAbsolute)),
                         Width = 120,
                         Height = 190
                     };
+
+                    if (book.ImageBitmap != null)
+                    {
+                        cover.Source = book.ImageBitmap;
+                    }
+                    else
+                    {
+                        // Use default image if book has no image
+                        cover.Source = new BitmapImage(new Uri("Images/default-book.png", UriKind.Relative));
+                    }
 
                     TextBlock title = new TextBlock
                     {
@@ -110,11 +113,12 @@ namespace Librarymanage
                 });
             });
 
-            // Wait for all images to load in parallel
             await Task.WhenAll(tasks);
         }
 
-        private List<Book> LoadBooksFromDatabase(string searchQuery = "")
+
+
+        private List<Book> LoadBooksFromDatabase(string query = "")
         {
             List<Book> books = new List<Book>();
 
@@ -122,33 +126,44 @@ namespace Librarymanage
             {
                 connection.Open();
 
-                string query = "SELECT * FROM Books";
+                string sql = string.IsNullOrEmpty(query)
+                    ? "SELECT * FROM Books"
+                    : "SELECT * FROM Books WHERE Name LIKE @query OR Author LIKE @query";
 
-                // If the user typed something in search box, search for it
-                if (!string.IsNullOrEmpty(searchQuery))
+                using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 {
-                    query += " WHERE Name LIKE @SearchQuery";
-                }
-
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                {
-                    if (!string.IsNullOrEmpty(searchQuery))
+                    if (!string.IsNullOrEmpty(query))
                     {
-                        command.Parameters.AddWithValue("@SearchQuery", "%" + searchQuery + "%");
+                        command.Parameters.AddWithValue("@query", "%" + query + "%");
                     }
 
                     using (SQLiteDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
+                            byte[] imageBytes = reader["BookImage"] as byte[];
+
+                            BitmapImage bookImage = null;
+                            if (imageBytes != null && imageBytes.Length > 0)
+                            {
+                                using (var stream = new MemoryStream(imageBytes))
+                                {
+                                    bookImage = new BitmapImage();
+                                    bookImage.BeginInit();
+                                    bookImage.CacheOption = BitmapCacheOption.OnLoad;
+                                    bookImage.StreamSource = stream;
+                                    bookImage.EndInit();
+                                }
+                            }
+
                             books.Add(new Book
                             {
                                 Title = reader["Name"].ToString(),
                                 Author = reader["Author"].ToString(),
-                                ReleaseDate = reader["Release-Date"].ToString(),
+                                ReleaseDate = reader["Release-Date"].ToString(), // ✅ no dash
                                 ISBN = reader["ISBN"].ToString(),
-                                Summary = reader["Description"].ToString()
-                                // The image will be loaded later from the API
+                                Summary = reader["Description"].ToString(),
+                                ImageBitmap = bookImage
                             });
                         }
                     }
@@ -159,13 +174,15 @@ namespace Librarymanage
         }
 
 
+
+
         private void ShowBookDetails(Book book)
         {
             _selectedBook = book;
 
             BookDetailsPanel.Visibility = Visibility.Visible;
 
-            BigCoverImage.Source = new BitmapImage(new Uri(book.ImagePath, UriKind.Absolute));
+            BigCoverImage.Source = book.ImageBitmap;
             BookTitle.Text = book.Title;
             BookAuthor.Text = "Author: " + book.Author;
             BookReleaseDate.Text = "Released: " + book.ReleaseDate;
@@ -311,7 +328,7 @@ namespace Librarymanage
 
 
 
-        private async void SearchButton_Click(object sender, RoutedEventArgs e)
+        private void SearchButton_Click(object sender, RoutedEventArgs e)
         {
             string query = SearchBox.Text.Trim();
 
@@ -319,7 +336,7 @@ namespace Librarymanage
             {
                 BooksPanel.Children.Clear(); // Clear old books
 
-                List<Book> searchResults = SearchBooksInDatabase(query);
+                List<Book> searchResults = LoadBooksFromDatabase(query);
 
                 if (searchResults.Count == 0)
                 {
@@ -329,22 +346,22 @@ namespace Librarymanage
 
                 foreach (var book in searchResults)
                 {
-                    // Get image from API
-                    string imagePath = await GetBookImageFromAPI(book.Title);
 
                     StackPanel bookPanel = new StackPanel
                     {
                         Width = 141,
-                        Margin = new Thickness(0,5,2,0),
+                        Margin = new Thickness(0, 5, 2, 0),
                         Cursor = Cursors.Hand
                     };
 
                     Image cover = new Image
                     {
-                        Source = new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute)),
+                        Source = book.ImageBitmap,
                         Width = 120,
                         Height = 190
                     };
+
+                    
 
                     TextBlock title = new TextBlock
                     {
@@ -355,8 +372,6 @@ namespace Librarymanage
                         Width = 120
                     };
 
-                    book.ImagePath = imagePath;
-
                     bookPanel.Children.Add(cover);
                     bookPanel.Children.Add(title);
 
@@ -365,106 +380,6 @@ namespace Librarymanage
                     BooksPanel.Children.Add(bookPanel);
                 }
             }
-        }
-
-        private List<Book> SearchBooksInDatabase(string searchQuery)
-        {
-            List<Book> books = new List<Book>();
-            
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = "SELECT * FROM Books WHERE Name LIKE @SearchQuery";
-
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@SearchQuery", "%" + searchQuery + "%");
-
-                    using (SQLiteDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            books.Add(new Book
-                            {
-                                Title = reader["Name"].ToString(),
-                                Author = reader["Author"].ToString(),
-                                ReleaseDate = reader["Release-Date"].ToString(),
-                                ISBN = reader["ISBN"].ToString(),
-                                Summary = reader["Description"].ToString()
-                                // Image will come from API
-                            });
-                        }
-                    }
-                }
-            }
-
-            return books;
-        }
-
-
-
-        private List<Book> GetBooksFromDatabase()
-        {
-            List<Book> books = new List<Book>();
-            
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = "SELECT * FROM Books";
-
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                using (SQLiteDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        books.Add(new Book
-                        {
-                            Title = reader["Name"].ToString(),
-                            Author = reader["Author"].ToString(),
-                            ReleaseDate = reader["Release-Date"].ToString(),
-                            ISBN = reader["ISBN"].ToString(),
-                            Summary = reader["Description"].ToString()
-                            // No Image in DB, we will get it from API
-                        });
-                    }
-                }
-            }
-            return books;
-        }
-
-        private async Task<string> GetBookImageFromAPI(string bookTitle)
-        {
-            string imageUrl = "https://via.placeholder.com/150"; // Default placeholder
-
-            using (HttpClient client = new HttpClient())
-            {
-                try
-                {
-                    string url = $"https://www.googleapis.com/books/v1/volumes?q={bookTitle.Replace(" ", "+")}&maxResults=1";
-                    var response = await client.GetAsync(url);
-                    var jsonString = await response.Content.ReadAsStringAsync();
-
-                    dynamic data = JsonConvert.DeserializeObject(jsonString);
-
-                    if (data.items != null && data.items.Count > 0)
-                    {
-                        var bookInfo = data.items[0].volumeInfo;
-
-                        if (bookInfo.imageLinks != null && bookInfo.imageLinks.thumbnail != null)
-                        {
-                            imageUrl = bookInfo.imageLinks.thumbnail.ToString().Replace("http://", "https://");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error fetching image: {ex.Message}");
-                }
-            }
-
-            return imageUrl;
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -489,11 +404,11 @@ namespace Librarymanage
         {
             BooksPanel.Visibility = Visibility.Collapsed;
             ReservePanel.Visibility = Visibility.Visible; // <- Show reserve panel
-            LoadBooksFromDatabase(); // <- Load reserved books
+            LoadReservedBooksFromDatabase(); // <- Load reserved books
         }
 
 
-        private void LoadBooksFromDatabase()
+        private void LoadReservedBooksFromDatabase()
         {
            // ReservePanel.Children.Clear(); // Clear old items
 
@@ -531,7 +446,7 @@ namespace Librarymanage
 
                             TextBlock bookInfo = new TextBlock
                             {
-                                Text = $"Book: {bookTitle}\nReserved from: {reservationDate} To: {returnDate}",
+                                Text = $"Book: {bookTitle}\nReserved from: {reservationDate}\nTo: {returnDate}",
                                 TextWrapping = TextWrapping.Wrap,
                                 FontSize = 14,
                                 Margin = new Thickness(0, 0, 0, 5)
