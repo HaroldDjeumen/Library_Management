@@ -168,26 +168,28 @@ namespace Librarymanage
         }
 
 
-        
-        private void AddBookToDatabase(object sender, RoutedEventArgs e)
+
+        private async void AddBookToDatabase(object sender, RoutedEventArgs e)
         {
             Button? addButton = sender as Button;
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8602
             Book selectedBook = (Book)addButton.Tag;
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning restore CS8602
 
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-                string insertQuery = "INSERT INTO Books (Name, [Release-Date], Author, ISBN, Description, JoinDate) VALUES (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate)";
+                string insertQuery = @"INSERT INTO Books 
+            (Name, [Release-Date], Author, ISBN, Description, JoinDate, BookImage) 
+            VALUES 
+            (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate, @BookImage)";
 
                 using (SQLiteCommand cmd = new SQLiteCommand(insertQuery, conn))
                 {
-                    // Fix the release date format to allow YYYY-MM-DD and YYYY
+                    // Parse release date
                     DateTime releaseDate;
                     string[] formats = { "yyyy-MM-dd", "yyyy", "d/M/yyyy", "dd/MM/yyyy", "M/d/yyyy", "yyyy-MM" };
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
                     if (DateTime.TryParseExact(selectedBook.ReleaseDate.Trim(), formats,
                         System.Globalization.CultureInfo.InvariantCulture,
                         System.Globalization.DateTimeStyles.None, out releaseDate))
@@ -199,7 +201,6 @@ namespace Librarymanage
                         MessageBox.Show($"Invalid release date format for book '{selectedBook.Title}'.");
                         return;
                     }
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
                     cmd.Parameters.AddWithValue("@Name", selectedBook.Title);
                     cmd.Parameters.AddWithValue("@Author", selectedBook.Author);
@@ -207,11 +208,17 @@ namespace Librarymanage
                     cmd.Parameters.AddWithValue("@Description", selectedBook.Summary);
                     cmd.Parameters.AddWithValue("@JoinDate", DateTime.Now.ToString("yyyy-MM-dd"));
 
+                    // ✅ Download and attach the image
+                    byte[]? imageBytes = await DownloadImageBytesAsync(selectedBook.ImagePath);
+                    if (imageBytes != null)
+                        cmd.Parameters.AddWithValue("@BookImage", imageBytes);
+                    else
+                        cmd.Parameters.AddWithValue("@BookImage", DBNull.Value);
+
                     try
                     {
                         cmd.ExecuteNonQuery();
-                        //MessageBox.Show($"Book '{selectedBook.Title}' added successfully!");
-                        LoadBooksFromDatabase(); // Refresh the book list
+                        LoadBooksFromDatabase();
                         conn.Close();
                     }
                     catch (Exception ex)
@@ -221,6 +228,29 @@ namespace Librarymanage
                 }
             }
         }
+
+        private async Task<byte[]?> DownloadImageBytesAsync(string imageUrl)
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync(imageUrl);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return await response.Content.ReadAsByteArrayAsync();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error downloading image: {ex.Message}");
+            }
+
+            return null;
+        }
+
+
 
         private async Task<List<Book>> SearchBooksFromAPI(string searchQuery)
         {
