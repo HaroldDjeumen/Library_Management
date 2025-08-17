@@ -19,6 +19,9 @@ namespace Librarymanage
         public string? ImagePath { get; set; }
         public string? Summary { get; set; }
         public BitmapImage ImageBitmap { get; set; }
+        public string? Genre { get; set; }
+        public string? EbookUrl { get; set; }
+        public string? PreviewUrl { get; set; }
 
     }
 
@@ -128,7 +131,7 @@ namespace Librarymanage
 
                 string sql = string.IsNullOrEmpty(query)
                     ? "SELECT * FROM Books"
-                    : "SELECT * FROM Books WHERE Name LIKE @query OR Author LIKE @query";
+                    : "SELECT * FROM Books WHERE Name LIKE @query OR Author LIKE @query OR Genre LIKE @query";
 
                 using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 {
@@ -163,7 +166,10 @@ namespace Librarymanage
                                 ReleaseDate = reader["Release-Date"].ToString(), // ✅ no dash
                                 ISBN = reader["ISBN"].ToString(),
                                 Summary = reader["Description"].ToString(),
-                                ImageBitmap = bookImage
+                                ImageBitmap = bookImage,
+                                Genre = reader["Genre"] != DBNull.Value ? reader["Genre"].ToString() : null,
+                                EbookUrl = reader["EbookUrl"] != DBNull.Value ? reader["EbookUrl"].ToString() : null,
+                                PreviewUrl = reader["PreviewUrl"] != DBNull.Value ? reader["PreviewUrl"].ToString() : null
                             });
                         }
                     }
@@ -188,6 +194,11 @@ namespace Librarymanage
             BookReleaseDate.Text = "Released: " + book.ReleaseDate;
             BookISBN.Text = "ISBN: " + book.ISBN;
             BookSummary.Text = book.Summary;
+            BookGenre.Text = "Genre: " + book.Genre;
+
+            // Add Ebook and Preview buttons
+            EbookButton.Visibility = !string.IsNullOrEmpty(book.EbookUrl) ? Visibility.Visible : Visibility.Collapsed;
+            PreviewButton.Visibility = !string.IsNullOrEmpty(book.PreviewUrl) ? Visibility.Visible : Visibility.Collapsed;
 
             // Reset
             CalenderView.Visibility = Visibility.Collapsed;
@@ -582,3 +593,26 @@ namespace Librarymanage
        
     }
 }
+
+
+        private void EbookButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedBook != null && !string.IsNullOrEmpty(_selectedBook.EbookUrl))
+            {
+                // In a real WPF app, you would open this URL in a browser.
+                // For this environment, we'll just show the URL.
+                MessageBox.Show($"Ebook URL: {_selectedBook.EbookUrl}");
+            }
+        }
+
+        private void PreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedBook != null && !string.IsNullOrEmpty(_selectedBook.PreviewUrl))
+            {
+                // In a real WPF app, you would open this URL in a browser.
+                // For this environment, we'll just show the URL.
+                MessageBox.Show($"Preview URL: {_selectedBook.PreviewUrl}");
+            }
+        }
+
+
