@@ -58,43 +58,55 @@ namespace Librarymanage
 
         private void EventsButton_Click(object sender, RoutedEventArgs e)
         {
-           
+            LoadContent("Events Management (Coming Soon)");
+        }
+
+        private void EbookButton_Click(object sender, RoutedEventArgs e)
+        {
+            ContentPanel.Children.Clear();
+            BookAdminPanel.Visibility = Visibility.Collapsed;
+            StatAdminPanel.Visibility = Visibility.Collapsed;
+            MembersAdminPanel.Visibility = Visibility.Collapsed;
+            UserAdminPanel.Visibility = Visibility.Collapsed;
+            EventsAdminPanel.Visibility = Visibility.Collapsed;
+            EbookAdminPanel.Visibility = Visibility.Visible;
+            ContentPanel.Children.Add(EbookAdminPanel);
         }
 
         private void MembersButton_Click(object sender, RoutedEventArgs e)
         {
-          
+            ContentPanel.Children.Clear();
+            BookAdminPanel.Visibility = Visibility.Collapsed;
+            StatAdminPanel.Visibility = Visibility.Collapsed;
+            EbookAdminPanel.Visibility = Visibility.Collapsed;
+            UserAdminPanel.Visibility = Visibility.Collapsed;
+            EventsAdminPanel.Visibility = Visibility.Collapsed;
+            MembersAdminPanel.Visibility = Visibility.Visible;
+            ContentPanel.Children.Add(MembersAdminPanel);
         }
 
-        private void StatsButton_Click(object sender, RoutedEventArgs e)
+        private void UserButton_Click(object sender, RoutedEventArgs e)
         {
             ContentPanel.Children.Clear();
             BookAdminPanel.Visibility = Visibility.Collapsed;
-            StatAdminPanel.Visibility = Visibility.Visible;
-            if (StatAdminPanel.Parent is Panel parentPanel)
-        {
-             parentPanel.Children.Remove(StatAdminPanel);
+            StatAdminPanel.Visibility = Visibility.Collapsed;
+            EbookAdminPanel.Visibility = Visibility.Collapsed;
+            MembersAdminPanel.Visibility = Visibility.Collapsed;
+            EventsAdminPanel.Visibility = Visibility.Collapsed;
+            UserAdminPanel.Visibility = Visibility.Visible;
+            ContentPanel.Children.Add(UserAdminPanel);
         }
 
-            ContentPanel.Children.Add(StatAdminPanel);
-            LoadStatisticsData();
-        }
-
-        private void LoadContent(string contentTitle)
+        private void EventsButton_Click(object sender, RoutedEventArgs e)
         {
-            ContentPanel.Children.Clear(); // Clear previous content
-
-            // Example: Add a title to the panel
-            TextBlock title = new TextBlock
-            {
-                Text = contentTitle,
-                FontSize = 32,
-                Foreground = System.Windows.Media.Brushes.Black,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            ContentPanel.Children.Add(title);
+            ContentPanel.Children.Clear();
+            BookAdminPanel.Visibility = Visibility.Collapsed;
+            StatAdminPanel.Visibility = Visibility.Collapsed;
+            EbookAdminPanel.Visibility = Visibility.Collapsed;
+            MembersAdminPanel.Visibility = Visibility.Collapsed;
+            UserAdminPanel.Visibility = Visibility.Collapsed;
+            EventsAdminPanel.Visibility = Visibility.Visible;
+            ContentPanel.Children.Add(EventsAdminPanel);
         }
 
         private async void AdminSearchButton_Click(object sender, RoutedEventArgs e)
@@ -180,9 +192,9 @@ namespace Librarymanage
             {
                 conn.Open();
                 string insertQuery = @"INSERT INTO Books 
-            (Name, [Release-Date], Author, ISBN, Description, JoinDate, BookImage) 
+            (Name, [Release-Date], Author, ISBN, Description, JoinDate, BookImage, Genre, EbookUrl, PreviewUrl) 
             VALUES 
-            (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate, @BookImage)";
+            (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate, @BookImage, @Genre, @EbookUrl, @PreviewUrl)";
 
                 using (SQLiteCommand cmd = new SQLiteCommand(insertQuery, conn))
                 {
@@ -214,6 +226,10 @@ namespace Librarymanage
                         cmd.Parameters.AddWithValue("@BookImage", imageBytes);
                     else
                         cmd.Parameters.AddWithValue("@BookImage", DBNull.Value);
+
+                    cmd.Parameters.AddWithValue("@Genre", selectedBook.Genre ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EbookUrl", selectedBook.EbookUrl ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PreviewUrl", selectedBook.PreviewUrl ?? (object)DBNull.Value);
 
                     try
                     {
@@ -313,7 +329,10 @@ namespace Librarymanage
                                     ReleaseDate = bookInfo.publishedDate != null ? bookInfo.publishedDate.ToString() : "Unknown",
                                     ISBN = bookInfo.industryIdentifiers[0].identifier.ToString(),
                                     ImagePath = imagePath,
-                                    Summary = bookInfo.description.ToString()
+                                    Summary = bookInfo.description.ToString(),
+                                    Genre = bookInfo.categories != null && bookInfo.categories.Count > 0 ? bookInfo.categories[0].ToString() : null,
+                                    EbookUrl = item.accessInfo != null && item.accessInfo.epub != null && item.accessInfo.epub.isAvailable == true && item.accessInfo.epub.acsTokenLink != null ? item.accessInfo.epub.acsTokenLink.ToString() : null,
+                                    PreviewUrl = bookInfo.previewLink != null ? bookInfo.previewLink.ToString() : null
                                 });
 
                                 if (books.Count >= 40) break; //  Load 40 books now
@@ -604,3 +623,19 @@ namespace Librarymanage
         }
     }
 }
+
+
+    public class Book
+    {
+        public string? Title { get; set; }
+        public string? Author { get; set; }
+        public string? ReleaseDate { get; set; }
+        public string? ISBN { get; set; }
+        public string? ImagePath { get; set; }
+        public string? Summary { get; set; }
+        public string? Genre { get; set; }
+        public string? EbookUrl { get; set; }
+        public string? PreviewUrl { get; set; }
+    }
+
+
