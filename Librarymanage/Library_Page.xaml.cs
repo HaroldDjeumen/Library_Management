@@ -402,18 +402,22 @@ namespace Librarymanage
         {
             ReservePanel.Visibility = Visibility.Collapsed;
             BooksPanel.Visibility = Visibility.Collapsed;
+            AccountPanel.Visibility = Visibility.Visible; // <- Show Account Details
+            LoadAccountDetails(); // <- Load user details
         }
 
         private void Library_clicked(object sender, RoutedEventArgs e)
         {
             LoadBooks();
             ReservePanel.Visibility = Visibility.Collapsed;
+            AccountPanel.Visibility = Visibility.Collapsed;
             BooksPanel.Visibility = Visibility.Visible; // <- Show books panel
         }
 
         private void Reservation_clicked(object sender, RoutedEventArgs e)
         {
             BooksPanel.Visibility = Visibility.Collapsed;
+            AccountPanel.Visibility = Visibility.Collapsed;
             ReservePanel.Visibility = Visibility.Visible; // <- Show reserve panel
             LoadReservedBooksFromDatabase(); // <- Load reserved books
         }
@@ -590,29 +594,75 @@ namespace Librarymanage
             MessageBox.Show("Reservation updated.");
         }
 
-       
-    }
-}
-
-
         private void EbookButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedBook != null && !string.IsNullOrEmpty(_selectedBook.EbookUrl))
-            {
-                // In a real WPF app, you would open this URL in a browser.
-                // For this environment, we'll just show the URL.
-                MessageBox.Show($"Ebook URL: {_selectedBook.EbookUrl}");
-            }
+
         }
 
         private void PreviewButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedBook != null && !string.IsNullOrEmpty(_selectedBook.PreviewUrl))
+
+        }
+
+        private void LoadAccountDetails()
+        {
+            AccountPanel.Children.Clear();
+
+            // Example: Load account info from database
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
-                // In a real WPF app, you would open this URL in a browser.
-                // For this environment, we'll just show the URL.
-                MessageBox.Show($"Preview URL: {_selectedBook.PreviewUrl}");
+                connection.Open();
+                string query = "SELECT * FROM Users WHERE Username = @Username";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", _currentUsername);
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            // Example: Show account info
+                            StackPanel accountInfo = new StackPanel { Margin = new Thickness(10) };
+
+                            accountInfo.Children.Add(new TextBlock
+                            {
+                                Text = "Account Details",
+                                FontSize = 20,
+                                FontWeight = FontWeights.Bold,
+                                Foreground = Brushes.Purple,
+                                Margin = new Thickness(0, 0, 0, 10)
+                            });
+
+                            accountInfo.Children.Add(new TextBlock
+                            {
+                                Text = "Username: " + reader["Username"].ToString(),
+                                FontSize = 16
+                            });
+
+                            accountInfo.Children.Add(new TextBlock
+                            {
+                                Text = "Email: " + reader["Email"].ToString(),
+                                FontSize = 16
+                            });
+
+                            accountInfo.Children.Add(new TextBlock
+                            {
+                                Text = "Phone: " + reader["Phone"].ToString(),
+                                FontSize = 16
+                            });
+
+                            AccountPanel.Children.Add(accountInfo);
+                        }
+                    }
+                }
             }
         }
+
+    }
+}
+
+
+        
 
 

@@ -4,6 +4,13 @@
              xmlns:local="clr-namespace:Librarymanage"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Theme/ScrollBarTheme.xaml"/>
+                <ResourceDictionary Source="/Theme/MenuButtonTheme.xaml"/>
+                <ResourceDictionary Source="/Theme/PlaceHolderTextBox.xaml"/>
+                <ResourceDictionary Source="/Theme/PasswordPlaceholder.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

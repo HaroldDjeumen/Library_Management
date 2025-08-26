@@ -1,126 +1,237 @@
-﻿<Page x:Class="Librarymanage.Admin_Page"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:Librarymanage"
-      mc:Ignorable="d" 
-      d:DesignHeight="661" d:DesignWidth="984"
-      Title="Admin_Page">
+﻿<Page
+    x:Class="Librarymanage.Admin_Page"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Librarymanage"
+    xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Admin_Page"
+    d:DesignHeight="661"
+    d:DesignWidth="984"
+    mc:Ignorable="d">
 
-    <Grid Background="#F0F2F5">
+    <Grid Background="#9370DB">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- Sidebar Navigation -->
-        <Border Grid.Column="0" Background="#2C3E50" CornerRadius="0,10,10,0" Margin="0,10,5,10">
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,30,0,0">
-                <TextBlock Text="ADMIN PANEL" Foreground="#ECF0F1" FontSize="28" FontWeight="Bold" Margin="0,0,0,40" HorizontalAlignment="Center" />
-                
-                <Button Content="Books Management" Style="{StaticResource AdminNavButton}" Click="BooksButton_Click"/>
-                <Button Content="Members Management" Style="{StaticResource AdminNavButton}" Click="MembersButton_Click"/>
-                <Button Content="Ebook Management" Style="{StaticResource AdminNavButton}" Click="EbookButton_Click"/>
-                <Button Content="User Management" Style="{StaticResource AdminNavButton}" Click="UserButton_Click"/>
-                <Button Content="Events Management" Style="{StaticResource AdminNavButton}" Click="EventsButton_Click"/>
-                <Button Content="Statistics" Style="{StaticResource AdminNavButton}" Click="StatsButton_Click"/>
-                <Button x:Name="Go_Back" Content="Go Back" Style="{StaticResource AdminNavButton}" Margin="0,100,0,0" Click="BackButton_Click"/>
+        <!--  Sidebar Navigation  -->
+        <Border
+            Grid.Column="0"
+            Margin="0,10,5,10"
+            Background="#4B0082"
+            CornerRadius="0,10,10,0">
+            <StackPanel
+                Margin="0,30,0,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top">
+                <TextBlock
+                    Margin="0,0,0,40"
+                    HorizontalAlignment="Center"
+                    FontSize="30"
+                    FontWeight="Bold"
+                    Foreground="#ECF0F1"
+                    Text="ADMIN PANEL" />
+
+                <RadioButton
+                    Margin="0,10,0,0"
+                    Click="BooksButton_Click"
+                    Content="Books "
+                    FontSize="20"
+                    Foreground="White"
+                    Style="{StaticResource MenuButtonTheme}" />
+                <RadioButton
+                    Margin="0,10,0,0"
+                    Click="MembersButton_Click"
+                    Content="Members "
+                    FontSize="20"
+                    Foreground="White"
+                    Style="{StaticResource MenuButtonTheme}" />
+                <RadioButton
+                    Margin="0,10,0,0"
+                    Click="EbookButton_Click"
+                    Content="Ebook "
+                    FontSize="20"
+                    Foreground="White"
+                    Style="{StaticResource MenuButtonTheme}" />
+
+                <RadioButton
+                    Margin="0,10,0,0"
+                    Click="EventsButton_Click"
+                    Content="Events "
+                    FontSize="20"
+                    Foreground="White"
+                    Style="{StaticResource MenuButtonTheme}" />
+                <RadioButton
+                    Margin="0,10,0,0"
+                    Click="StatsButton_Click"
+                    Content="Statistics"
+                    FontSize="20"
+                    Foreground="White"
+                    Style="{StaticResource MenuButtonTheme}" />
+                <RadioButton
+                    x:Name="Go_Back"
+                    Margin="0,240,0,0"
+                    Click="BackButton_Click"
+                    Content="Go Back"
+                    FontSize="20"
+                    Foreground="White"
+                    Style="{StaticResource MenuButtonTheme}" />
             </StackPanel>
         </Border>
 
-        <!-- Main Content Area -->
-        <Grid Grid.Column="1" x:Name="ContentPanel" Background="#FFFFFF" Margin="5,10,10,10" CornerRadius="10">
-            <Grid.Resources>
-                <Style TargetType="Button" x:Key="AdminNavButton">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="Foreground" Value="#ECF0F1"/>
-                    <Setter Property="FontSize" Value="18"/>
-                    <Setter Property="Height" Value="50"/>
-                    <Setter Property="Margin" Value="0,5"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                    <Setter Property="Padding" Value="20,0,0,0"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#34495E"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-                <Style TargetType="TextBlock" x:Key="SectionHeader">
-                    <Setter Property="FontSize" Value="24"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="Foreground" Value="#2C3E50"/>
-                    <Setter Property="Margin" Value="0,0,0,20"/>
-                </Style>
-                <Style TargetType="TextBox">
-                    <Setter Property="Height" Value="35"/>
-                    <Setter Property="Padding" Value="5"/>
-                    <Setter Property="BorderBrush" Value="#BDC3C7"/>
-                    <Setter Property="BorderThickness" Value="1"/>
-                    <Setter Property="VerticalContentAlignment" Value="Center"/>
-                </Style>
-                <Style TargetType="Button">
-                    <Setter Property="Background" Value="#3498DB"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="Padding" Value="10,5"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                    <Setter Property="Cursor" Value="Hand"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#2980B9"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </Grid.Resources>
+        <!--  Main Content Area  -->
+        <Border
+            Grid.Column="1"
+            Margin="5,10,10,10"
+            Background="#E6E6FA"
+            BorderBrush="#BDC3C7"
+            BorderThickness="1"
+            CornerRadius="10"
+            SnapsToDevicePixels="True">
+            <Grid
+                x:Name="ContentPanel"
+                Margin="0,10,0,10"
+                Background="Transparent">
+                <Grid.Resources>
+                    <Style x:Key="AdminNavButton" TargetType="Button">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="Foreground" Value="#ECF0F1" />
+                        <Setter Property="FontSize" Value="18" />
+                        <Setter Property="Height" Value="50" />
+                        <Setter Property="Margin" Value="0,5" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="HorizontalContentAlignment" Value="Left" />
+                        <Setter Property="Padding" Value="20,0,0,0" />
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#34495E" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                    <Style x:Key="SectionHeader" TargetType="TextBlock">
+                        <Setter Property="FontSize" Value="24" />
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="Foreground" Value="#9370DB" />
+                        <Setter Property="Margin" Value="0,0,0,20" />
+                    </Style>
+                    <Style TargetType="TextBox">
+                        <Setter Property="Height" Value="35" />
+                        <Setter Property="Padding" Value="5" />
+                        <Setter Property="BorderBrush" Value="#BDC3C7" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                    </Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#3498DB" />
+                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="Padding" Value="10,5" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Cursor" Value="Hand" />
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#2980B9" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Resources>
 
-            <TextBlock Text="Welcome to the Admin Dashboard" Style="{StaticResource SectionHeader}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource SectionHeader}"
+                    Text="Welcome to the Admin Dashboard" />
 
-            <!-- Books Management Panel -->
-            <ScrollViewer x:Name="BookAdminPanel" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="20">
-                    <TextBlock Text="Add New Book" Style="{StaticResource SectionHeader}"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,10">
-                        <TextBox x:Name="AdminSearchBox" Width="300" Margin="0,0,10,0" PlaceholderText="Search by title or author"/>
-                        <Button Content="Search Google Books" Click="AdminSearchButton_Click" Width="180"/>
+                <!--  Books Management Panel  -->
+                <ScrollViewer
+                    x:Name="BookAdminPanel"
+                    VerticalScrollBarVisibility="Auto"
+                    Visibility="Collapsed">
+                    <ScrollViewer.Resources>
+                        <Style BasedOn="{StaticResource ModernScrollBarStyle}" TargetType="ScrollBar" />
+                    </ScrollViewer.Resources>
+                    <StackPanel Margin="10">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Add New Book" />
+                        <StackPanel Margin="0,5" Orientation="Horizontal">
+                            <TextBox
+                                x:Name="AdminSearchBox"
+                                Width="300"
+                                Height="30"
+                                Margin="0,0,5,0"
+                                Style="{StaticResource ModernTextbox}"
+                                Tag="Add books by name or author..." />
+                            <Button
+                                Width="100"
+                                Click="AdminSearchButton_Click"
+                                Content="Search " 
+                                Background="#9370DB"/>
+                        </StackPanel>
+
+                        <Border
+                            MinHeight="20"
+                            Margin="0,20,0,0"
+                            BorderBrush="#BDC3C7"
+                            BorderThickness="1"
+                            CornerRadius="5">
+                            <ScrollViewer MaxHeight="470" VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="ApiBooksPanel" />
+                            </ScrollViewer>
+                        </Border>
+
+                        <TextBlock
+                            Margin="0,40,0,0"
+                            Style="{StaticResource SectionHeader}"
+                            Text="Books in Database" />
+                        <Border
+                            BorderBrush="#BDC3C7"
+                            BorderThickness="1"
+                            CornerRadius="5">
+                            <ScrollViewer
+                                Width="668"
+                                MaxHeight="560"
+                                Margin="10,5,5,5"
+                                VerticalScrollBarVisibility="Auto">
+                                <StackPanel x:Name="DatabaseBooksPanel" />
+                            </ScrollViewer>
+                        </Border>
                     </StackPanel>
+                </ScrollViewer>
 
-                    <Border BorderBrush="#BDC3C7" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,20,0,0">
-                        <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="ApiBooksPanel" />
-                        </ScrollViewer>
-                    </Border>
-
-                    <TextBlock Text="Books in Database" Style="{StaticResource SectionHeader}" Margin="0,40,0,0"/>
-                    <Border BorderBrush="#BDC3C7" BorderThickness="1" CornerRadius="5" Padding="10">
-                        <ScrollViewer MaxHeight="400" VerticalScrollBarVisibility="Auto">
-                            <StackPanel x:Name="DatabaseBooksPanel" />
-                        </ScrollViewer>
-                    </Border>
-                </StackPanel>
-            </ScrollViewer>
-
-            <!-- Statistics Panel -->
-            <ScrollViewer x:Name="StatAdminPanel" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="20">
-                    <TextBlock Text="Library Statistics" Style="{StaticResource SectionHeader}"/>
-                    <Grid Margin="0,20">
+                <!--  Statistics Panel  -->
+                <StackPanel
+                    x:Name="StatAdminPanel"
+                    Margin="20"
+                    Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Library Statistics" />
+                    <Grid Margin="0,15">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <!-- New Members -->
-                        <Border Grid.Row="0" Grid.Column="0" BorderBrush="#BDC3C7" BorderThickness="1" CornerRadius="5" Padding="15" Margin="0,0,10,10">
+                        <!--  New Members  -->
+                        <Border
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="0,0,10,10"
+                            Padding="15"
+                            BorderBrush="#BDC3C7"
+                            BorderThickness="1"
+                            CornerRadius="5">
                             <StackPanel>
-                                <TextBlock Text="New Members Over Time" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                                <lvc:CartesianChart Series="{Binding NewMembersSeries}" Height="180">
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="New Members Over Time" />
+                                <lvc:CartesianChart Height="180" Series="{Binding NewMembersSeries}">
                                     <lvc:CartesianChart.AxisX>
                                         <lvc:Axis Title="Time" Labels="{Binding Labels}" />
                                     </lvc:CartesianChart.AxisX>
@@ -131,11 +242,22 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- New Books -->
-                        <Border Grid.Row="0" Grid.Column="1" BorderBrush="#BDC3C7" BorderThickness="1" CornerRadius="5" Padding="15" Margin="10,0,0,10">
+                        <!--  New Books  -->
+                        <Border
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Margin="10,0,0,10"
+                            Padding="15"
+                            BorderBrush="#BDC3C7"
+                            BorderThickness="1"
+                            CornerRadius="5">
                             <StackPanel>
-                                <TextBlock Text="New Books Added Over Time" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                                <lvc:CartesianChart Series="{Binding NewBooksSeries}" Height="180">
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="New Books Added Over Time" />
+                                <lvc:CartesianChart Height="180" Series="{Binding NewBooksSeries}">
                                     <lvc:CartesianChart.AxisX>
                                         <lvc:Axis Title="Time" Labels="{Binding Labels}" />
                                     </lvc:CartesianChart.AxisX>
@@ -146,11 +268,22 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Book Reservations -->
-                        <Border Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#BDC3C7" BorderThickness="1" CornerRadius="5" Padding="15" Margin="0,10,0,10">
+                        <!--  Book Reservations  -->
+                        <Border
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            Margin="0,10,0,10"
+                            Padding="15"
+                            BorderBrush="#BDC3C7"
+                            BorderThickness="1"
+                            CornerRadius="5">
                             <StackPanel>
-                                <TextBlock Text="Book Reservations Over Time" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                                <lvc:CartesianChart Series="{Binding BookReservationsSeries}" Height="180">
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="Book Reservations Over Time" />
+                                <lvc:CartesianChart Height="180" Series="{Binding BookReservationsSeries}">
                                     <lvc:CartesianChart.AxisX>
                                         <lvc:Axis Title="Time" Labels="{Binding Labels}" />
                                     </lvc:CartesianChart.AxisX>
@@ -162,36 +295,181 @@
                         </Border>
                     </Grid>
                 </StackPanel>
-            </ScrollViewer>
 
-            <!-- Placeholder for Members Management -->
-            <StackPanel x:Name="MembersAdminPanel" Visibility="Collapsed" Margin="20">
-                <TextBlock Text="Members Management" Style="{StaticResource SectionHeader}"/>
-                <TextBlock Text="Manage library members, their accounts, and borrowing history." FontSize="16" Foreground="#555"/>
-                <!-- Add member management UI elements here -->
-            </StackPanel>
 
-            <!-- Placeholder for Ebook Management -->
-            <StackPanel x:Name="EbookAdminPanel" Visibility="Collapsed" Margin="20">
-                <TextBlock Text="Ebook Management" Style="{StaticResource SectionHeader}"/>
-                <TextBlock Text="Manage free ebooks and their availability." FontSize="16" Foreground="#555"/>
-                <!-- Add ebook management UI elements here -->
-            </StackPanel>
+                <!--  Placeholder for Members Management  -->
+                <ScrollViewer
+                    x:Name="MembersAdminPanel"
+                    Margin="10,5,0,5"
+                    Visibility="Visible">
+                    <ScrollViewer.Resources>
+                        <Style BasedOn="{StaticResource ModernScrollBarStyle}" TargetType="ScrollBar" />
+                    </ScrollViewer.Resources>
+                    <StackPanel>
 
-            <!-- Placeholder for User Management -->
-            <StackPanel x:Name="UserAdminPanel" Visibility="Collapsed" Margin="20">
-                <TextBlock Text="User Management" Style="{StaticResource SectionHeader}"/>
-                <TextBlock Text="Manage user accounts and permissions." FontSize="16" Foreground="#555"/>
-                <!-- Add user management UI elements here -->
-            </StackPanel>
+                        <!--  Header  -->
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Members Management" />
+                        <TextBlock
+                            Margin="0,0,0,20"
+                            FontSize="16"
+                            Foreground="#555"
+                            Text="Manage library members, their accounts, and borrowing history." />
 
-            <!-- Placeholder for Events Management -->
-            <StackPanel x:Name="EventsAdminPanel" Visibility="Collapsed" Margin="20">
-                <TextBlock Text="Events Management" Style="{StaticResource SectionHeader}"/>
-                <TextBlock Text="Organize and manage library events and programs." FontSize="16" Foreground="#555"/>
-                <!-- Add event management UI elements here -->
-            </StackPanel>
+                        <!--  Search Bar  -->
+                        <DockPanel Margin="0,0,0,15">
+                            <TextBox
+                                x:Name="MemberSearchBox"
+                                Width="250"
+                                Height="30"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource ModernTextbox}"
+                                Tag="Search by Username..." />
+                            <Button
+                                x:Name="MemberSearchButton"
+                                Width="100"
+                                Height="30"
+                                Margin="0,0,340,0"
+                                Background="#9370DB"
+                                Click="SearchUser_Click"
+                                Content="Search"
+                                Foreground="White" />
+                        </DockPanel>
 
-        </Grid>
+                        <!--  Members Table  -->
+                        <DataGrid
+                            x:Name="MembersTable"
+                            Height="460"
+                            Margin="0,0,0,15"
+                            AutoGenerateColumns="False"
+                            BorderBrush="#ccc"
+                            BorderThickness="1"
+                            CanUserAddRows="False"
+                            CanUserDeleteRows="False"
+                            IsReadOnly="True">
+
+                            <!--  Define columns explicitly  -->
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Username}"
+                                    Header="Username" />
+                                <DataGridTextColumn
+                                    Width="2*"
+                                    Binding="{Binding Email}"
+                                    Header="Email" />
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Phone}"
+                                    Header="Phone" />
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding JoinDate}"
+                                    Header="Join Date" />
+
+                                <!--  Action Buttons  -->
+                                <DataGridTemplateColumn Width="150" Header="Actions">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+
+                                                <Button
+                                                    Width="150"
+                                                    Background="#9370DB"
+                                                    Content="Insect"
+                                                    Foreground="White"
+                                                    Tag="{Binding}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <!--  Add New Member  -->
+                        <GroupBox Margin="0,15,0,10" Header="Add New Member" >
+                            <StackPanel Margin="10">
+                                <TextBox
+                                    x:Name="NewMemberName"
+                                    Margin="0,0,0,10"
+                                    Style="{StaticResource ModernTextbox}"
+                                    Tag="Username" />
+                                <TextBox
+                                    x:Name="NewMemberEmail"
+                                    Margin="0,0,0,10"
+                                    Style="{StaticResource ModernTextbox}"
+                                    Tag="Email" />
+                                <TextBox
+                                    x:Name="NewMemberPhone"
+                                    Margin="0,0,0,10"
+                                    Style="{StaticResource ModernTextbox}"
+                                    Tag="Phone Number" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Password :"
+                                               FontSize="12"
+                                               VerticalAlignment="Center"
+                                               Margin="2,0,10,15"/>
+                                    <PasswordBox
+                                        x:Name="NewMemberPassword"
+                                        Margin="0,0,0,10"
+                                        Width="590"
+                                        Style="{StaticResource ModernPasswordbox}"
+                                        Tag="Password" />
+                                </StackPanel>
+
+                                <Button
+                                    x:Name="AddMemberButton"
+                                    Width="120"
+                                    Background="#9370DB"
+                                    Click="AddMember_Click"
+                                    Content="Add Member"
+                                    Foreground="White" />
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+
+
+
+                <!--  Placeholder for Ebook Management  -->
+                <StackPanel
+                    x:Name="EbookAdminPanel"
+                    Margin="20"
+                    Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Ebook Management" />
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="#555"
+                        Text="Manage free ebooks and their availability." />
+                    <!--  Add ebook management UI elements here  -->
+                </StackPanel>
+
+                <!--  Placeholder for User Management  -->
+                <StackPanel
+                    x:Name="UserAdminPanel"
+                    Margin="20"
+                    Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="User Management" />
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="#555"
+                        Text="Manage user accounts and permissions." />
+                    <!--  Add user management UI elements here  -->
+                </StackPanel>
+
+                <!--  Placeholder for Events Management  -->
+                <StackPanel
+                    x:Name="EventsAdminPanel"
+                    Margin="20"
+                    Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="Events Management" />
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="#555"
+                        Text="Organize and manage library events and programs." />
+                    <!--  Add event management UI elements here  -->
+                </StackPanel>
+
+            </Grid>
+        </Border>
     </Grid>
 </Page>
