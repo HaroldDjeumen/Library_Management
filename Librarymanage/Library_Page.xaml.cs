@@ -19,13 +19,10 @@ namespace Librarymanage
         public string? ImagePath { get; set; }
         public string? Summary { get; set; }
         public BitmapImage ImageBitmap { get; set; }
-        public string? Genre { get; set; }
-        public string? EbookUrl { get; set; }
         public string? PreviewUrl { get; set; }
 
     }
 
-   
 
     public class Reservation
     {
@@ -41,6 +38,7 @@ namespace Librarymanage
         private Frame _mainFrame;
         private string _currentUsername;
         private Book _selectedBook;
+        private string _currentBookTitle;
         private Reservation _selectedReservation;
         private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
 
@@ -58,6 +56,12 @@ namespace Librarymanage
             LoadBooks();
             BooksPanel.Visibility = Visibility.Visible;
            
+            Loaded += async (s, e) =>
+{
+    await PreviewBrowser.EnsureCoreWebView2Async(null);
+    PreviewBrowser.Source = new Uri("https://www.google.com");
+};
+
             
             if (_selectedBook != null)
             {
@@ -77,8 +81,8 @@ namespace Librarymanage
                 {
                     StackPanel bookPanel = new StackPanel
                     {
-                        Width = 141,
-                        Margin = new Thickness(0, 5, 2, 0),
+                        Width = 132,
+                        Margin = new Thickness(2,5,5,5),
                         Cursor = Cursors.Hand
                     };
 
@@ -131,7 +135,7 @@ namespace Librarymanage
 
                 string sql = string.IsNullOrEmpty(query)
                     ? "SELECT * FROM Books"
-                    : "SELECT * FROM Books WHERE Name LIKE @query OR Author LIKE @query OR Genre LIKE @query";
+                    : "SELECT * FROM Books WHERE Name LIKE @query OR Author LIKE @query";
 
                 using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                 {
@@ -163,13 +167,10 @@ namespace Librarymanage
                             {
                                 Title = reader["Name"].ToString(),
                                 Author = reader["Author"].ToString(),
-                                ReleaseDate = reader["Release-Date"].ToString(), // ✅ no dash
+                                ReleaseDate = reader["Release-Date"].ToString(), 
                                 ISBN = reader["ISBN"].ToString(),
                                 Summary = reader["Description"].ToString(),
                                 ImageBitmap = bookImage,
-                                Genre = reader["Genre"] != DBNull.Value ? reader["Genre"].ToString() : null,
-                                EbookUrl = reader["EbookUrl"] != DBNull.Value ? reader["EbookUrl"].ToString() : null,
-                                PreviewUrl = reader["PreviewUrl"] != DBNull.Value ? reader["PreviewUrl"].ToString() : null
                             });
                         }
                     }
@@ -194,11 +195,6 @@ namespace Librarymanage
             BookReleaseDate.Text = "Released: " + book.ReleaseDate;
             BookISBN.Text = "ISBN: " + book.ISBN;
             BookSummary.Text = book.Summary;
-            BookGenre.Text = "Genre: " + book.Genre;
-
-            // Add Ebook and Preview buttons
-            EbookButton.Visibility = !string.IsNullOrEmpty(book.EbookUrl) ? Visibility.Visible : Visibility.Collapsed;
-            PreviewButton.Visibility = !string.IsNullOrEmpty(book.PreviewUrl) ? Visibility.Visible : Visibility.Collapsed;
 
             // Reset
             CalenderView.Visibility = Visibility.Collapsed;
@@ -214,13 +210,13 @@ namespace Librarymanage
         {
             if (IsBookReserved(bookTitle))
             {
-                OpenCalendarButton.Visibility = Visibility.Collapsed;
+                bookbutton.Visibility = Visibility.Collapsed;
                 BookAvail.Text = "This book is currently reserved.";
                 BookAvail.Visibility = Visibility.Visible;
             }
             else
             {
-                OpenCalendarButton.Visibility = Visibility.Visible;
+                bookbutton.Visibility = Visibility.Visible;
                 BookAvail.Visibility = Visibility.Collapsed;
             }
         }
@@ -297,7 +293,7 @@ namespace Librarymanage
 
                 ConfirmReservationButton.Visibility = Visibility.Collapsed;
                 CalenderView.Visibility = Visibility.Collapsed;
-                OpenCalendarButton.Visibility = Visibility.Collapsed;
+                bookbutton.Visibility = Visibility.Collapsed;
                 ReservationPolicyText.Visibility = Visibility.Collapsed;
                 BookAvail.Text = "This book is currently reserved";
                 BookAvail.Visibility = Visibility.Visible;
@@ -360,8 +356,8 @@ namespace Librarymanage
 
                     StackPanel bookPanel = new StackPanel
                     {
-                        Width = 141,
-                        Margin = new Thickness(0, 5, 2, 0),
+                        Width = 132,
+                        Margin = new Thickness(2, 5, 5, 5),
                         Cursor = Cursors.Hand
                     };
 
@@ -402,6 +398,7 @@ namespace Librarymanage
         {
             ReservePanel.Visibility = Visibility.Collapsed;
             BooksPanel.Visibility = Visibility.Collapsed;
+            PreviewPanel.Visibility = Visibility.Collapsed;
             AccountPanel.Visibility = Visibility.Visible; // <- Show Account Details
             LoadAccountDetails(); // <- Load user details
         }
@@ -411,6 +408,7 @@ namespace Librarymanage
             LoadBooks();
             ReservePanel.Visibility = Visibility.Collapsed;
             AccountPanel.Visibility = Visibility.Collapsed;
+            PreviewPanel.Visibility = Visibility.Collapsed;
             BooksPanel.Visibility = Visibility.Visible; // <- Show books panel
         }
 
@@ -418,6 +416,7 @@ namespace Librarymanage
         {
             BooksPanel.Visibility = Visibility.Collapsed;
             AccountPanel.Visibility = Visibility.Collapsed;
+            PreviewPanel.Visibility = Visibility.Collapsed;
             ReservePanel.Visibility = Visibility.Visible; // <- Show reserve panel
             LoadReservedBooksFromDatabase(); // <- Load reserved books
         }
@@ -659,6 +658,186 @@ namespace Librarymanage
             }
         }
 
+        private async void OpenPreviewButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_selectedBook.Title))
+            {
+                MessageBox.Show("Error getting Book Title");
+                return;
+            }
+
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                string query = "SELECT Name, PreviewUrl FROM Books WHERE Name LIKE @Title LIMIT 1";
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Title", "%" + _selectedBook.Title + "%");
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            string foundTitle = reader["Name"].ToString();
+                            string previewUrl = reader["PreviewUrl"].ToString();
+
+                            if (!string.IsNullOrEmpty(previewUrl) && previewUrl != "no preview available")
+                            {
+                                BookTitle.Text = foundTitle;
+
+                                await PreviewBrowser.EnsureCoreWebView2Async(null);
+
+                                if (PreviewBrowser.CoreWebView2 != null)
+                                {
+                                    PreviewBrowser.CoreWebView2.Navigate(previewUrl);
+                                    PreviewPanel.Visibility = Visibility.Visible;
+                                    ReservePanel.Visibility = Visibility.Collapsed;
+                                    BooksPanel.Visibility = Visibility.Collapsed;
+                                    AccountPanel.Visibility = Visibility.Collapsed;
+                                }
+                                else
+                                {
+                                    MessageBox.Show("CoreWebView2 failed ❌");
+                                }
+
+                                PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
+                                {
+                                    await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                                            document.body.style.backgroundColor = 'white';
+                                            document.body.style.color = 'black';
+                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
+                                    ");
+
+                                };
+
+                            }
+                            else
+                            {
+                                MessageBox.Show("This book does not have a preview.");
+                                PreviewPanel.Visibility = Visibility.Collapsed;
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("No book found with that title.");
+                        }
+                    }
+                }
+            }
+        }
+
+
+        private async void OpenEbookButton_Click(object sender, RoutedEventArgs e)
+        {
+            await PreviewBrowser.EnsureCoreWebView2Async(null);
+
+            if (PreviewBrowser.CoreWebView2 != null)
+            {
+                PreviewBrowser.CoreWebView2.Navigate("https://openlibrary.org");
+                PreviewPanel.Visibility = Visibility.Visible;
+                ReservePanel.Visibility = Visibility.Collapsed;
+                BooksPanel.Visibility = Visibility.Collapsed;
+                AccountPanel.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                MessageBox.Show("CoreWebView2 failed ❌");
+            }
+
+            PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
+            {
+                await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                                            document.body.style.backgroundColor = 'white';
+                                            document.body.style.color = 'black';
+                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
+                                    ");
+
+            };
+        }
+
+        private async void educationbooks_clicked(object sender, RoutedEventArgs e)
+        {
+            await PreviewBrowser.EnsureCoreWebView2Async(null);
+
+            if (PreviewBrowser.CoreWebView2 != null)
+            {
+                PreviewBrowser.CoreWebView2.Navigate("https://openlibrary.org");
+                PreviewPanel.Visibility = Visibility.Visible;
+                ReservePanel.Visibility = Visibility.Collapsed;
+                BooksPanel.Visibility = Visibility.Collapsed;
+                AccountPanel.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                MessageBox.Show("CoreWebView2 failed ❌");
+            }
+
+            PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
+            {
+                await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                                            document.body.style.backgroundColor = 'white';
+                                            document.body.style.color = 'black';
+                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
+                                    ");
+
+            };
+        }
+
+        private async void Readmangas_clicked(object sender, RoutedEventArgs e)
+        {
+            await PreviewBrowser.EnsureCoreWebView2Async(null);
+
+            if (PreviewBrowser.CoreWebView2 != null)
+            {
+                PreviewBrowser.CoreWebView2.Navigate("https://mangadex.org");
+                PreviewPanel.Visibility = Visibility.Visible;
+                ReservePanel.Visibility = Visibility.Collapsed;
+                BooksPanel.Visibility = Visibility.Collapsed;
+                AccountPanel.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                MessageBox.Show("CoreWebView2 failed ❌");
+            }
+
+            PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
+            {
+                await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                                            document.body.style.backgroundColor = 'white';
+                                            document.body.style.color = 'black';
+                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
+                                    ");
+
+            };
+        }
+
+        private async void Readebooks_clicked(object sender, RoutedEventArgs e)
+        {
+            await PreviewBrowser.EnsureCoreWebView2Async(null);
+
+            if (PreviewBrowser.CoreWebView2 != null)
+            {
+                PreviewBrowser.CoreWebView2.Navigate("https://openlibrary.org");
+                PreviewPanel.Visibility = Visibility.Visible;
+                ReservePanel.Visibility = Visibility.Collapsed;
+                BooksPanel.Visibility = Visibility.Collapsed;
+                AccountPanel.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                MessageBox.Show("CoreWebView2 failed ❌");
+            }
+
+            PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
+            {
+                await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                                            document.body.style.backgroundColor = 'white';
+                                            document.body.style.color = 'black';
+                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
+                                    ");
+
+            };
+        }
     }
 }
 

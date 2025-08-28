@@ -66,7 +66,6 @@ namespace Librarymanage
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Collapsed;
             EbookAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(EbookAdminPanel);
@@ -78,22 +77,9 @@ namespace Librarymanage
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Collapsed;
             EbookAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(MembersAdminPanel);
-        }
-
-        private void UserButton_Click(object sender, RoutedEventArgs e)
-        {
-            ContentPanel.Children.Clear();
-            BookAdminPanel.Visibility = Visibility.Collapsed;
-            StatAdminPanel.Visibility = Visibility.Collapsed;
-            EbookAdminPanel.Visibility = Visibility.Collapsed;
-            MembersAdminPanel.Visibility = Visibility.Collapsed;
-            EventsAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Visible;
-            ContentPanel.Children.Add(UserAdminPanel);
         }
 
         private void EventsButton_Click(object sender, RoutedEventArgs e)
@@ -103,7 +89,6 @@ namespace Librarymanage
             StatAdminPanel.Visibility = Visibility.Collapsed;
             EbookAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(EventsAdminPanel);
         }
@@ -114,7 +99,6 @@ namespace Librarymanage
             StatAdminPanel.Visibility = Visibility.Visible;
             EbookAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Collapsed;
             ContentPanel.Children.Add(StatAdminPanel);
             LoadStatisticsData();
@@ -157,6 +141,14 @@ namespace Librarymanage
                 TextBlock author = new TextBlock { Text = $"Author: {book.Author}", Margin = new Thickness(0, 5, 0, 0) };
                 TextBlock release = new TextBlock { Text = $"Release Date: {book.ReleaseDate}", Margin = new Thickness(0, 5, 0, 0) };
 
+                // ✅ Show if Preview is available
+                TextBlock previewStatus = new TextBlock
+                {
+                    Text = string.IsNullOrEmpty(book.PreviewUrl) ? "Preview: Not Available" : "Preview: Available",
+                    Margin = new Thickness(0, 5, 0, 0),
+                    Foreground = new SolidColorBrush(string.IsNullOrEmpty(book.PreviewUrl) ? Colors.Red : Colors.Green)
+                };
+
                 // Book Description inside a ScrollViewer
                 ScrollViewer descriptionScroll = new ScrollViewer
                 {
@@ -178,7 +170,6 @@ namespace Librarymanage
                     Content = "Add to Database",
                     Margin = new Thickness(0, 10, 0, 0),
                     Tag = book,
-
                 };
                 addButton.Click += AddBookToDatabase;
 
@@ -186,7 +177,8 @@ namespace Librarymanage
                 detailsPanel.Children.Add(title);
                 detailsPanel.Children.Add(author);
                 detailsPanel.Children.Add(release);
-                detailsPanel.Children.Add(descriptionScroll); // use scrollable description
+                detailsPanel.Children.Add(previewStatus); // ✅ Added preview info here
+                detailsPanel.Children.Add(descriptionScroll);
                 detailsPanel.Children.Add(addButton);
 
                 // Build book panel
@@ -200,22 +192,19 @@ namespace Librarymanage
         }
 
 
-
-
         private async void AddBookToDatabase(object sender, RoutedEventArgs e)
         {
             Button? addButton = sender as Button;
-#pragma warning disable CS8602
+
             Book selectedBook = (Book)addButton.Tag;
-#pragma warning restore CS8602
 
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
                 string insertQuery = @"INSERT INTO Books 
-            (Name, [Release-Date], Author, ISBN, Description, JoinDate, BookImage, Genre, EbookUrl, PreviewUrl) 
-            VALUES 
-            (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate, @BookImage, @Genre, @EbookUrl, @PreviewUrl)";
+                                     (Name, [Release-Date], Author, ISBN, Description, JoinDate, BookImage, PreviewUrl) 
+                                     VALUES 
+                                     (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate, @BookImage, @PreviewUrl)";
 
                 using (SQLiteCommand cmd = new SQLiteCommand(insertQuery, conn))
                 {
@@ -247,9 +236,6 @@ namespace Librarymanage
                         cmd.Parameters.AddWithValue("@BookImage", imageBytes);
                     else
                         cmd.Parameters.AddWithValue("@BookImage", DBNull.Value);
-
-                    cmd.Parameters.AddWithValue("@Genre", selectedBook.Genre ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@EbookUrl", selectedBook.EbookUrl ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PreviewUrl", selectedBook.PreviewUrl ?? (object)DBNull.Value);
 
                     try
@@ -265,6 +251,7 @@ namespace Librarymanage
                 }
             }
         }
+
 
         private async Task<byte[]?> DownloadImageBytesAsync(string imageUrl)
         {
@@ -295,7 +282,6 @@ namespace Librarymanage
             List<string> queries = new List<string>
     {
         searchQuery,
-
     };
 
             using (HttpClient client = new HttpClient())
@@ -319,14 +305,12 @@ namespace Librarymanage
                             {
                                 var bookInfo = item.volumeInfo;
 
-
                                 if (bookInfo.imageLinks == null || string.IsNullOrEmpty((string)bookInfo.imageLinks.thumbnail))
                                     continue;
 
                                 string imagePath = ((string)bookInfo.imageLinks.thumbnail).Replace("http://", "https://");
                                 if (imagePath == "https://via.placeholder.com/150")
                                     continue;
-
 
                                 if (bookInfo.authors == null || bookInfo.authors.Count == 0)
                                     continue;
@@ -335,13 +319,16 @@ namespace Librarymanage
                                 if (authorsArray.Length == 0 || authorsArray[0].ToLower() == "unknown")
                                     continue;
 
-
                                 if (bookInfo.description == null || string.IsNullOrEmpty((string)bookInfo.description) || ((string)bookInfo.description).ToLower() == "unknown")
                                     continue;
 
-
                                 if (bookInfo.industryIdentifiers == null || bookInfo.industryIdentifiers.Count == 0)
                                     continue;
+
+                                
+                                string previewUrl = bookInfo.previewLink != null && !string.IsNullOrEmpty((string)bookInfo.previewLink)
+                                    ? (string)bookInfo.previewLink
+                                    : "no preview available";
 
                                 books.Add(new Book
                                 {
@@ -351,17 +338,15 @@ namespace Librarymanage
                                     ISBN = bookInfo.industryIdentifiers[0].identifier.ToString(),
                                     ImagePath = imagePath,
                                     Summary = bookInfo.description.ToString(),
-                                    Genre = bookInfo.categories != null && bookInfo.categories.Count > 0 ? bookInfo.categories[0].ToString() : null,
-                                    EbookUrl = item.accessInfo != null && item.accessInfo.epub != null && item.accessInfo.epub.isAvailable == true && item.accessInfo.epub.acsTokenLink != null ? item.accessInfo.epub.acsTokenLink.ToString() : null,
-                                    PreviewUrl = bookInfo.previewLink != null ? bookInfo.previewLink.ToString() : null
+                                    PreviewUrl = previewUrl
                                 });
 
-                                if (books.Count >= 40) break; //  Load 40 books now
+                                if (books.Count >= 40) break; // Limit to 40 books
                             }
                         }
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
 
-                        if (books.Count >= 40) break; //  Stop searching if enough books are found
+                        if (books.Count >= 40) break;
                     }
                     catch (Exception ex)
                     {
@@ -372,6 +357,7 @@ namespace Librarymanage
 
             return books;
         }
+
 
         private void LoadBooksFromDatabase()
         {

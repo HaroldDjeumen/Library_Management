@@ -6,6 +6,7 @@
     xmlns:local="clr-namespace:Librarymanage"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
     Title="Library_Page"
     Width="984"
     Height="661"
@@ -46,7 +47,7 @@
                                 Content=""
                                 FontFamily="Segoe MDL2 Assets"
                                 FontSize="25"
-                                Foreground="#9370DB"/>
+                                Foreground="#9370DB" />
                         </Border>
                     </Grid>
 
@@ -65,9 +66,9 @@
 
                             <TextBox
                                 x:Name="SearchBox"
-                                Padding="4"
-                                Height="35"
                                 Width="387"
+                                Height="35"
+                                Padding="4"
                                 VerticalAlignment="Center"
                                 FontSize="18"
                                 Style="{StaticResource ModernTextbox}"
@@ -82,11 +83,11 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 Background="#9370DB"
+                                BorderThickness="0"
                                 Click="SearchButton_Click"
                                 Content="Search"
                                 FontSize="18"
-                                Foreground="White"
-                                BorderThickness="0"/>
+                                Foreground="White" />
                         </Grid>
                     </Border>
                 </Grid>
@@ -96,16 +97,59 @@
             <Border
                 Grid.Row="1"
                 Margin="5"
-                Padding="2"
                 Background="#E6E6FA"
                 BorderBrush="#4B0082"
                 BorderThickness="2">
-                <ScrollViewer x:Name="bookPanel" VerticalScrollBarVisibility="Hidden">
-                    <StackPanel>
-                        <WrapPanel x:Name="BooksPanel" Visibility="Collapsed" />
-                        <WrapPanel x:Name="ReservePanel" Visibility="Collapsed" />
-                        <WrapPanel x:Name="AccountPanel" Visibility="Collapsed" />
-                    </StackPanel>
+                <ScrollViewer x:Name="bookPanel">
+                    <ScrollViewer.Resources>
+                        <Style BasedOn="{StaticResource ModernScrollBarStyle}" TargetType="ScrollBar" />
+                    </ScrollViewer.Resources>
+
+                    <!--  Main Grid holds all panels on top of each other  -->
+                    <Grid>
+                        <!--  Books Panel  -->
+                        <WrapPanel
+                            x:Name="BooksPanel"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Visibility="Collapsed" />
+
+                        <!--  Reserve Panel  -->
+                        <WrapPanel
+                            x:Name="ReservePanel"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Visibility="Collapsed" />
+
+                        <!--  Account Panel  -->
+                        <WrapPanel
+                            x:Name="AccountPanel"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Visibility="Collapsed" />
+
+                        <!--  Preview Panel  -->
+                        <Grid
+                            x:Name="PreviewPanel"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Visibility="Collapsed">
+                            <wv2:WebView2
+                                x:Name="PreviewBrowser"
+                                Width="576"
+                                Height="470"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                DefaultBackgroundColor="White" />
+                        </Grid>
+
+                        <!--  Ebook Panel  -->
+                        <WrapPanel
+                            x:Name="EbookPanel"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Visibility="Collapsed" />
+                    </Grid>
                 </ScrollViewer>
             </Border>
 
@@ -158,11 +202,12 @@
                         Grid.Column="2"
                         HorizontalScrollBarVisibility="Auto"
                         VerticalScrollBarVisibility="Disabled">
-                        <StackPanel
+                        <StackPanel>
+                            <StackPanel
                             Margin="5,0,0,0"
                             VerticalAlignment="Center"
                             Orientation="Horizontal">
-                            <Button
+                                <Button
                                 x:Name="Reservation_Details"
                                 Width="Auto"
                                 Height="30"
@@ -174,7 +219,7 @@
                                 FontSize="12"
                                 FontWeight="Bold"
                                 Foreground="White" />
-                            <Button
+                                <Button
                                 x:Name="Library"
                                 Width="Auto"
                                 Height="30"
@@ -186,7 +231,7 @@
                                 FontSize="12"
                                 FontWeight="Bold"
                                 Foreground="White" />
-                            <Button
+                                <Button
                                 x:Name="Account_Details"
                                 Width="Auto"
                                 Height="30"
@@ -198,6 +243,50 @@
                                 FontSize="12"
                                 FontWeight="Bold"
                                 Foreground="White" />
+                            </StackPanel>
+
+
+                            <StackPanel
+                            Margin="5,0,0,0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                                <Button
+                                x:Name="Readebooks"
+                                Width="Auto"
+                                Height="30"
+                                Margin="5,5"
+                                Padding="5"
+                                Background="#4B0082"
+                                Click="Readebooks_clicked"
+                                Content="Read Ebooks"
+                                FontSize="12"
+                                FontWeight="Bold"
+                                Foreground="White" />
+                                <Button
+                                x:Name="Readmangas"
+                                Width="Auto"
+                                Height="30"
+                                Margin="5,5"
+                                Padding="5"
+                                Background="#4B0082"
+                                Click="Readmangas_clicked"
+                                Content="Mangas"
+                                FontSize="12"
+                                FontWeight="Bold"
+                                Foreground="White" />
+                                <Button
+                                x:Name="Readeducationbooks"
+                                Width="Auto"
+                                Height="30"
+                                Margin="5,5"
+                                Padding="5"
+                                Background="#4B0082"
+                                Click="educationbooks_clicked"
+                                Content="Educational Books"
+                                FontSize="12"
+                                FontWeight="Bold"
+                                Foreground="White" />
+                            </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
@@ -209,12 +298,15 @@
         <Border
             Grid.Column="1"
             Margin="5"
-            Padding="20"
+            Padding="10,10,0,10"
             Background="#E6E6FA"
             BorderBrush="#4B0082"
             BorderThickness="2"
             CornerRadius="0,5,5,0">
-            <ScrollViewer VerticalScrollBarVisibility="Hidden">
+            <ScrollViewer>
+                <ScrollViewer.Resources>
+                    <Style BasedOn="{StaticResource ModernScrollBarStyle}" TargetType="ScrollBar" />
+                </ScrollViewer.Resources>
                 <StackPanel x:Name="BookDetailsPanel" Visibility="Visible">
                     <Image
                         x:Name="BigCoverImage"
@@ -296,21 +388,56 @@
                             Visibility="Collapsed" />
                     </StackPanel>
 
-                    <Button
-                        x:Name="OpenCalendarButton"
-                        Width="Auto"
-                        Height="30"
-                        Margin="0,20,0,0"
-                        Padding="5"
-                        HorizontalAlignment="Center"
-                        Background="#4B0082"
-                        Click="OpenCalendarButton_Click"
-                        Content="Reserve Book"
-                        FontSize="14"
-                        FontWeight="Bold"
-                        Foreground="White"
-                        Visibility="Collapsed" />
+                    <StackPanel
+                        x:Name="bookbutton"
+                        Margin="5,0,0,0"
+                        Orientation="Horizontal"
+                        Visibility="Collapsed">
+                        <Button
+                            x:Name="OpenCalendarButton"
+                            Width="Auto"
+                            Height="30"
+                            Margin="10,20,0,0"
+                            Padding="5"
+                            HorizontalAlignment="Center"
+                            Background="#4B0082"
+                            Click="OpenCalendarButton_Click"
+                            Content="Reserve Book"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Visibility="Visible" />
 
+                        <Button
+                            x:Name="OpenPreviewButton"
+                            Width="Auto"
+                            Height="30"
+                            Margin="10,20,10,0"
+                            Padding="5"
+                            HorizontalAlignment="Center"
+                            Background="#4B0082"
+                            Click="OpenPreviewButton_Click"
+                            Content="Read Preview"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Visibility="Visible" />
+
+                        <Button
+                            x:Name="OpenEbookButton"
+                            Width="Auto"
+                            Height="30"
+                            Margin="0,20,0,0"
+                            Padding="5"
+                            HorizontalAlignment="Center"
+                            Background="#4B0082"
+                            Click="OpenEbookButton_Click"
+                            Content="Read E-book"
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="White"
+                            Visibility="Visible" />
+                    </StackPanel>
 
                     <StackPanel
                         x:Name="CalenderView"
@@ -405,7 +532,7 @@
                     <Button
                         x:Name="ConfirmReservationButton"
                         Width="Auto"
-                        Height="Auto"
+                        Height="30"
                         Margin="0,20,0,0"
                         Background="#4B0082"
                         Click="ConfirmReservationButton_Click"

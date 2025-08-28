@@ -159,7 +159,6 @@
                                 x:Name="AdminSearchBox"
                                 Width="300"
                                 Height="30"
-                                Margin="0,0,5,0"
                                 Style="{StaticResource ModernTextbox}"
                                 Tag="Add books by name or author..." />
                             <Button
@@ -170,7 +169,7 @@
                         </StackPanel>
 
                         <Border
-                            MinHeight="20"
+                            MinHeight="30"
                             Margin="0,20,0,0"
                             BorderBrush="#BDC3C7"
                             BorderThickness="1"
