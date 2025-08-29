@@ -1,15 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using LiveCharts;
+using LiveCharts.Defaults;
+using LiveCharts.Wpf;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.SQLite;
+using System.Globalization;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using LiveCharts;
-using LiveCharts.Wpf;
-using LiveCharts.Defaults;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Librarymanage
 {
@@ -28,7 +30,6 @@ namespace Librarymanage
         public SeriesCollection NewBooksSeries { get; set; }
         public SeriesCollection BookReservationsSeries { get; set; }
         public List<string> Labels { get; set; }
-
 
 
 
@@ -112,6 +113,7 @@ namespace Librarymanage
             ApiBooksPanel.Children.Clear();
 
             List<Book> books = await SearchBooksFromAPI(query);
+
 
             foreach (var book in books)
             {
@@ -274,88 +276,138 @@ namespace Librarymanage
             return null;
         }
 
-
-
         private async Task<List<Book>> SearchBooksFromAPI(string searchQuery)
         {
+            ApiBooksPanel.Children.Clear();
             List<Book> books = new List<Book>();
-            List<string> queries = new List<string>
-    {
-        searchQuery,
-    };
-
             using (HttpClient client = new HttpClient())
             {
-                foreach (var query in queries)
+                try
                 {
-                    try
+                    string url = $"https://openlibrary.org/search.json?q={searchQuery.Replace(" ", "+")}&limit=40";
+                    var response = await client.GetAsync(url);
+                    if (!response.IsSuccessStatusCode)
+                        return books;
+
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(jsonString);
+
+                    if (data.docs != null)
                     {
-                        string Url = $"https://www.googleapis.com/books/v1/volumes?q={query.Replace(" ", "+")}&maxResults=40";
-                        var response = await client.GetAsync(Url);
-                        var jsonString = await response.Content.ReadAsStringAsync();
-
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-                        dynamic data = JsonConvert.DeserializeObject(jsonString);
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                        if (data.items != null && data.items.Count > 0)
+                        foreach (var doc in data.docs)
                         {
-                            foreach (var item in data.items)
+                            bool hasEbook = doc.ebook_access == "full" || doc.has_fulltext == true;
+                            if (!hasEbook) continue;
+
+                            string title = doc.title != null ? (string)doc.title : "Unknown Title";
+                            string author = (doc.author_name != null && doc.author_name.Count > 0)
+                                ? string.Join(", ", doc.author_name.ToObject<string[]>())
+                                : "Unknown Author";
+
+                            string imagePath = doc.cover_i != null
+                                ? $"https://covers.openlibrary.org/b/id/{doc.cover_i}-L.jpg"
+                                : "https://via.placeholder.com/150";
+
+                            // ✅ direct ebook link if possible
+                            string previewUrl = "no preview available";
+                            if (doc.ia != null && doc.ia.Count > 0)
                             {
-                                var bookInfo = item.volumeInfo;
-
-                                if (bookInfo.imageLinks == null || string.IsNullOrEmpty((string)bookInfo.imageLinks.thumbnail))
-                                    continue;
-
-                                string imagePath = ((string)bookInfo.imageLinks.thumbnail).Replace("http://", "https://");
-                                if (imagePath == "https://via.placeholder.com/150")
-                                    continue;
-
-                                if (bookInfo.authors == null || bookInfo.authors.Count == 0)
-                                    continue;
-
-                                string[] authorsArray = bookInfo.authors.ToObject<string[]>();
-                                if (authorsArray.Length == 0 || authorsArray[0].ToLower() == "unknown")
-                                    continue;
-
-                                if (bookInfo.description == null || string.IsNullOrEmpty((string)bookInfo.description) || ((string)bookInfo.description).ToLower() == "unknown")
-                                    continue;
-
-                                if (bookInfo.industryIdentifiers == null || bookInfo.industryIdentifiers.Count == 0)
-                                    continue;
-
-                                
-                                string previewUrl = bookInfo.previewLink != null && !string.IsNullOrEmpty((string)bookInfo.previewLink)
-                                    ? (string)bookInfo.previewLink
-                                    : "no preview available";
-
-                                books.Add(new Book
-                                {
-                                    Title = bookInfo.title,
-                                    Author = string.Join(", ", authorsArray),
-                                    ReleaseDate = bookInfo.publishedDate != null ? bookInfo.publishedDate.ToString() : "Unknown",
-                                    ISBN = bookInfo.industryIdentifiers[0].identifier.ToString(),
-                                    ImagePath = imagePath,
-                                    Summary = bookInfo.description.ToString(),
-                                    PreviewUrl = previewUrl
-                                });
-
-                                if (books.Count >= 40) break; // Limit to 40 books
+                                string identifier = doc.ia[0];
+                                previewUrl = $"https://archive.org/stream/{identifier}";
                             }
-                        }
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                            else if (doc.key != null)
+                            {
+                                previewUrl = $"https://openlibrary.org{doc.key}";
+                            }
 
-                        if (books.Count >= 40) break;
+                            // Defaults
+                            string isbn = "Unknown";
+                            string summary = "No description available";
+
+                            // Google fallback for ISBN + summary
+                            var googleData = await FetchGoogleBookData(title, author);
+                            if (!string.IsNullOrEmpty(googleData.isbn))
+                                isbn = googleData.isbn;
+                            if (!string.IsNullOrEmpty(googleData.description))
+                                summary = googleData.description;
+
+                            books.Add(new Book
+                            {
+                                Title = title,
+                                Author = author,
+                                ReleaseDate = doc.first_publish_year != null ? doc.first_publish_year.ToString() : "Unknown",
+                                ISBN = isbn,
+                                ImagePath = imagePath,
+                                Summary = summary,
+                                PreviewUrl = previewUrl
+                            });
+
+                            if (books.Count >= 40) break;
+                        }
+
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error fetching data from API: {ex.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error fetching data from Open Library: {ex.Message}");
                 }
             }
 
             return books;
+        }
+
+        private async Task<(string isbn, string description)> FetchGoogleBookData(string title, string author)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string query = $"{title} {author}".Replace(" ", "+");
+                    string url = $"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=1";
+
+                    var response = await client.GetAsync(url);
+                    if (!response.IsSuccessStatusCode) return (null, null);
+
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(jsonString);
+
+                    if (data.items != null && data.items.Count > 0)
+                    {
+                        var volumeInfo = data.items[0].volumeInfo;
+
+                        // ISBN
+                        string isbn = null;
+                        if (volumeInfo.industryIdentifiers != null)
+                        {
+                            foreach (var id in volumeInfo.industryIdentifiers)
+                            {
+                                if ((string)id.type == "ISBN_13")
+                                {
+                                    isbn = id.identifier;
+                                    break;
+                                }
+                                if ((string)id.type == "ISBN_10" && isbn == null)
+                                {
+                                    isbn = id.identifier;
+                                }
+                            }
+                        }
+
+                        // Description
+                        string description = volumeInfo.description != null
+                            ? (string)volumeInfo.description
+                            : null;
+
+                        return (isbn, description);
+                    }
+                }
+                catch
+                {
+                    return (null, null);
+                }
+            }
+
+            return (null, null);
         }
 
 

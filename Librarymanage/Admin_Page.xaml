@@ -49,14 +49,7 @@
                     FontSize="20"
                     Foreground="White"
                     Style="{StaticResource MenuButtonTheme}" />
-                <RadioButton
-                    Margin="0,10,0,0"
-                    Click="EbookButton_Click"
-                    Content="Ebook "
-                    FontSize="20"
-                    Foreground="White"
-                    Style="{StaticResource MenuButtonTheme}" />
-
+          
                 <RadioButton
                     Margin="0,10,0,0"
                     Click="EventsButton_Click"
@@ -73,7 +66,7 @@
                     Style="{StaticResource MenuButtonTheme}" />
                 <RadioButton
                     x:Name="Go_Back"
-                    Margin="0,240,0,0"
+                    Margin="0,290,0,0"
                     Click="BackButton_Click"
                     Content="Go Back"
                     FontSize="20"
@@ -163,9 +156,9 @@
                                 Tag="Add books by name or author..." />
                             <Button
                                 Width="100"
+                                Background="#9370DB"
                                 Click="AdminSearchButton_Click"
-                                Content="Search " 
-                                Background="#9370DB"/>
+                                Content="Search " />
                         </StackPanel>
 
                         <Border
@@ -198,109 +191,229 @@
                     </StackPanel>
                 </ScrollViewer>
 
+
                 <!--  Statistics Panel  -->
-                <StackPanel
+                <ScrollViewer
                     x:Name="StatAdminPanel"
-                    Margin="20"
+                    Width="710"
+                    Margin="7,0,0,0"
+                    Background="#E6E6FA"
                     Visibility="Collapsed">
-                    <TextBlock Style="{StaticResource SectionHeader}" Text="Library Statistics" />
-                    <Grid Margin="0,15">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                    <ScrollViewer.Resources>
+                        <Style BasedOn="{StaticResource ModernScrollBarStyle}" TargetType="ScrollBar" />
+                    </ScrollViewer.Resources>
+                    <StackPanel>
+                        <TextBlock
+                            Margin="0,0,0,15"
+                            Style="{StaticResource SectionHeader}"
+                            Text="Library Statistics" />
 
-                        <!--  New Members  -->
-                        <Border
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Margin="0,0,10,10"
-                            Padding="15"
-                            BorderBrush="#BDC3C7"
-                            BorderThickness="1"
-                            CornerRadius="5">
-                            <StackPanel>
+                        <!--  New Members Row  -->
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="290" />
+                                <!--  Left: Filters & Details  -->
+                                <ColumnDefinition Width="*" />
+                                <!--  Right: Chart  -->
+                            </Grid.ColumnDefinitions>
+
+                            <!--  Left Side: Filters + Details  -->
+                            <StackPanel Grid.Column="0" Margin="0,0,20,0">
                                 <TextBlock
                                     Margin="0,0,0,10"
-                                    FontSize="18"
                                     FontWeight="SemiBold"
-                                    Text="New Members Over Time" />
-                                <lvc:CartesianChart Height="180" Series="{Binding NewMembersSeries}">
-                                    <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="Time" Labels="{Binding Labels}" />
-                                    </lvc:CartesianChart.AxisX>
-                                    <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
-                                    </lvc:CartesianChart.AxisY>
-                                </lvc:CartesianChart>
-                            </StackPanel>
-                        </Border>
+                                    Text="Filter New Members" />
 
-                        <!--  New Books  -->
-                        <Border
-                            Grid.Row="0"
-                            Grid.Column="1"
-                            Margin="10,0,0,10"
-                            Padding="15"
-                            BorderBrush="#BDC3C7"
-                            BorderThickness="1"
-                            CornerRadius="5">
-                            <StackPanel>
+                                <StackPanel Margin="0,0,0,5" Orientation="Horizontal">
+                                    <ComboBox
+                                        Width="80"
+                                        ItemsSource="{Binding Days}"
+                                        SelectedItem="{Binding SelectedMemberDay}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                    <ComboBox
+                                        Width="80"
+                                        Margin="15,0"
+                                        ItemsSource="{Binding Months}"
+                                        SelectedItem="{Binding SelectedMemberMonth}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                    <ComboBox
+                                        Width="80"
+                                        ItemsSource="{Binding Years}"
+                                        SelectedItem="{Binding SelectedMemberYear}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="SemiBold"
+                                    Text="Details:" />
+                                <ListBox Height="165" />
+                            </StackPanel>
+
+                            <!--  Right Side: Chart  -->
+                            <Border
+                                Grid.Column="1"
+                                Padding="15"
+                                BorderBrush="#BDC3C7"
+                                BorderThickness="1"
+                                CornerRadius="5">
+                                <StackPanel>
+                                    <TextBlock
+                                        Margin="0,0,0,10"
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="New Members Over Time" />
+                                    <lvc:CartesianChart Height="180" Series="{Binding NewMembersSeries}">
+                                        <lvc:CartesianChart.AxisX>
+                                            <lvc:Axis Title="Time" Labels="{Binding Labels}" />
+                                        </lvc:CartesianChart.AxisX>
+                                        <lvc:CartesianChart.AxisY>
+                                            <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
+                                        </lvc:CartesianChart.AxisY>
+                                    </lvc:CartesianChart>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!--  Repeat same structure for New Books  -->
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="290" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,20,0">
                                 <TextBlock
                                     Margin="0,0,0,10"
-                                    FontSize="18"
                                     FontWeight="SemiBold"
-                                    Text="New Books Added Over Time" />
-                                <lvc:CartesianChart Height="180" Series="{Binding NewBooksSeries}">
-                                    <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="Time" Labels="{Binding Labels}" />
-                                    </lvc:CartesianChart.AxisX>
-                                    <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
-                                    </lvc:CartesianChart.AxisY>
-                                </lvc:CartesianChart>
-                            </StackPanel>
-                        </Border>
+                                    Text="Filter New Books" />
 
-                        <!--  Book Reservations  -->
-                        <Border
-                            Grid.Row="1"
-                            Grid.ColumnSpan="2"
-                            Margin="0,10,0,10"
-                            Padding="15"
-                            BorderBrush="#BDC3C7"
-                            BorderThickness="1"
-                            CornerRadius="5">
-                            <StackPanel>
+                                <StackPanel Margin="0,0,0,5" Orientation="Horizontal">
+                                    <ComboBox
+                                        Width="80"
+                                        ItemsSource="{Binding Days}"
+                                        SelectedItem="{Binding SelectedBookDay}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                    <ComboBox
+                                        Width="80"
+                                        Margin="15,0"
+                                        ItemsSource="{Binding Months}"
+                                        SelectedItem="{Binding SelectedBookMonth}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                    <ComboBox
+                                        Width="80"
+                                        ItemsSource="{Binding Years}"
+                                        SelectedItem="{Binding SelectedBookYear}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="SemiBold"
+                                    Text="Details:" />
+                                <TextBox
+                                    Height="165"
+                                    AcceptsReturn="True"
+                                    Text="{Binding BookDetails}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Padding="15"
+                                BorderBrush="#BDC3C7"
+                                BorderThickness="1"
+                                CornerRadius="5">
+                                <StackPanel>
+                                    <TextBlock
+                                        Margin="0,0,0,10"
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="New Books Added Over Time" />
+                                    <lvc:CartesianChart Height="180" Series="{Binding NewBooksSeries}">
+                                        <lvc:CartesianChart.AxisX>
+                                            <lvc:Axis Title="Time" Labels="{Binding Labels}" />
+                                        </lvc:CartesianChart.AxisX>
+                                        <lvc:CartesianChart.AxisY>
+                                            <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
+                                        </lvc:CartesianChart.AxisY>
+                                    </lvc:CartesianChart>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!--  Repeat same structure for Reservations  -->
+                        <Grid Margin="0,0,0,20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="290" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,20,0">
                                 <TextBlock
                                     Margin="0,0,0,10"
-                                    FontSize="18"
                                     FontWeight="SemiBold"
-                                    Text="Book Reservations Over Time" />
-                                <lvc:CartesianChart Height="180" Series="{Binding BookReservationsSeries}">
-                                    <lvc:CartesianChart.AxisX>
-                                        <lvc:Axis Title="Time" Labels="{Binding Labels}" />
-                                    </lvc:CartesianChart.AxisX>
-                                    <lvc:CartesianChart.AxisY>
-                                        <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
-                                    </lvc:CartesianChart.AxisY>
-                                </lvc:CartesianChart>
+                                    Text="Filter Reservations" />
+
+                                <StackPanel Margin="0,0,0,5" Orientation="Horizontal">
+                                    <ComboBox
+                                        Width="80"
+                                        ItemsSource="{Binding Days}"
+                                        SelectedItem="{Binding SelectedReservationDay}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                    <ComboBox
+                                        Width="80"
+                                        Margin="15,0"
+                                        ItemsSource="{Binding Months}"
+                                        SelectedItem="{Binding SelectedReservationMonth}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                    <ComboBox
+                                        Width="80"
+                                        ItemsSource="{Binding Years}"
+                                        SelectedItem="{Binding SelectedReservationYear}"
+                                        Style="{StaticResource CustomComboBoxStyle}" />
+                                </StackPanel>
+
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="SemiBold"
+                                    Text="Details:" />
+                                <ListBox Height="165" />
                             </StackPanel>
-                        </Border>
-                    </Grid>
-                </StackPanel>
+
+                            <Border
+                                Grid.Column="1"
+                                Padding="15"
+                                BorderBrush="#BDC3C7"
+                                BorderThickness="1"
+                                CornerRadius="5">
+                                <StackPanel>
+                                    <TextBlock
+                                        Margin="0,0,0,10"
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="Book Reservations Over Time" />
+                                    <lvc:CartesianChart Height="180" Series="{Binding BookReservationsSeries}">
+                                        <lvc:CartesianChart.AxisX>
+                                            <lvc:Axis Title="Time" Labels="{Binding Labels}" />
+                                        </lvc:CartesianChart.AxisX>
+                                        <lvc:CartesianChart.AxisY>
+                                            <lvc:Axis Title="Count" LabelFormatter="{Binding Formatter}" />
+                                        </lvc:CartesianChart.AxisY>
+                                    </lvc:CartesianChart>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+
 
 
                 <!--  Placeholder for Members Management  -->
                 <ScrollViewer
                     x:Name="MembersAdminPanel"
                     Margin="10,5,0,5"
-                    Visibility="Visible">
+                    Visibility="Collapsed">
                     <ScrollViewer.Resources>
                         <Style BasedOn="{StaticResource ModernScrollBarStyle}" TargetType="ScrollBar" />
                     </ScrollViewer.Resources>
@@ -385,7 +498,7 @@
                         </DataGrid>
 
                         <!--  Add New Member  -->
-                        <GroupBox Margin="0,15,0,10" Header="Add New Member" >
+                        <GroupBox Margin="0,15,0,10" Header="Add New Member">
                             <StackPanel Margin="10">
                                 <TextBox
                                     x:Name="NewMemberName"
@@ -403,14 +516,15 @@
                                     Style="{StaticResource ModernTextbox}"
                                     Tag="Phone Number" />
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Password :"
-                                               FontSize="12"
-                                               VerticalAlignment="Center"
-                                               Margin="2,0,10,15"/>
+                                    <TextBlock
+                                        Margin="2,0,10,15"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Text="Password :" />
                                     <PasswordBox
                                         x:Name="NewMemberPassword"
-                                        Margin="0,0,0,10"
                                         Width="590"
+                                        Margin="0,0,0,10"
                                         Style="{StaticResource ModernPasswordbox}"
                                         Tag="Password" />
                                 </StackPanel>
@@ -427,34 +541,7 @@
                     </StackPanel>
                 </ScrollViewer>
 
-
-
-                <!--  Placeholder for Ebook Management  -->
-                <StackPanel
-                    x:Name="EbookAdminPanel"
-                    Margin="20"
-                    Visibility="Collapsed">
-                    <TextBlock Style="{StaticResource SectionHeader}" Text="Ebook Management" />
-                    <TextBlock
-                        FontSize="16"
-                        Foreground="#555"
-                        Text="Manage free ebooks and their availability." />
-                    <!--  Add ebook management UI elements here  -->
-                </StackPanel>
-
-                <!--  Placeholder for User Management  -->
-                <StackPanel
-                    x:Name="UserAdminPanel"
-                    Margin="20"
-                    Visibility="Collapsed">
-                    <TextBlock Style="{StaticResource SectionHeader}" Text="User Management" />
-                    <TextBlock
-                        FontSize="16"
-                        Foreground="#555"
-                        Text="Manage user accounts and permissions." />
-                    <!--  Add user management UI elements here  -->
-                </StackPanel>
-
+                
                 <!--  Placeholder for Events Management  -->
                 <StackPanel
                     x:Name="EventsAdminPanel"

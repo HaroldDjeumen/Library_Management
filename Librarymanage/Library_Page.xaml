@@ -136,8 +136,8 @@
                             Visibility="Collapsed">
                             <wv2:WebView2
                                 x:Name="PreviewBrowser"
-                                Width="576"
-                                Height="470"
+                                Width="577"
+                                Height="488"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
                                 DefaultBackgroundColor="White" />
@@ -204,21 +204,10 @@
                         VerticalScrollBarVisibility="Disabled">
                         <StackPanel>
                             <StackPanel
-                            Margin="5,0,0,0"
+                            Margin="5,12,0,0"
                             VerticalAlignment="Center"
                             Orientation="Horizontal">
-                                <Button
-                                x:Name="Reservation_Details"
-                                Width="Auto"
-                                Height="30"
-                                Margin="5,5"
-                                Padding="5"
-                                Background="#4B0082"
-                                Click="Reservation_clicked"
-                                Content="Reserved Books"
-                                FontSize="12"
-                                FontWeight="Bold"
-                                Foreground="White" />
+
                                 <Button
                                 x:Name="Library"
                                 Width="Auto"
@@ -243,25 +232,6 @@
                                 FontSize="12"
                                 FontWeight="Bold"
                                 Foreground="White" />
-                            </StackPanel>
-
-
-                            <StackPanel
-                            Margin="5,0,0,0"
-                            VerticalAlignment="Center"
-                            Orientation="Horizontal">
-                                <Button
-                                x:Name="Readebooks"
-                                Width="Auto"
-                                Height="30"
-                                Margin="5,5"
-                                Padding="5"
-                                Background="#4B0082"
-                                Click="Readebooks_clicked"
-                                Content="Read Ebooks"
-                                FontSize="12"
-                                FontWeight="Bold"
-                                Foreground="White" />
                                 <Button
                                 x:Name="Readmangas"
                                 Width="Auto"
@@ -271,18 +241,6 @@
                                 Background="#4B0082"
                                 Click="Readmangas_clicked"
                                 Content="Mangas"
-                                FontSize="12"
-                                FontWeight="Bold"
-                                Foreground="White" />
-                                <Button
-                                x:Name="Readeducationbooks"
-                                Width="Auto"
-                                Height="30"
-                                Margin="5,5"
-                                Padding="5"
-                                Background="#4B0082"
-                                Click="educationbooks_clicked"
-                                Content="Educational Books"
                                 FontSize="12"
                                 FontWeight="Bold"
                                 Foreground="White" />
@@ -390,7 +348,7 @@
 
                     <StackPanel
                         x:Name="bookbutton"
-                        Margin="5,0,0,0"
+                        Margin="60,0,0,0"
                         Orientation="Horizontal"
                         Visibility="Collapsed">
                         <Button
@@ -418,21 +376,6 @@
                             Background="#4B0082"
                             Click="OpenPreviewButton_Click"
                             Content="Read Preview"
-                            FontSize="14"
-                            FontWeight="Bold"
-                            Foreground="White"
-                            Visibility="Visible" />
-
-                        <Button
-                            x:Name="OpenEbookButton"
-                            Width="Auto"
-                            Height="30"
-                            Margin="0,20,0,0"
-                            Padding="5"
-                            HorizontalAlignment="Center"
-                            Background="#4B0082"
-                            Click="OpenEbookButton_Click"
-                            Content="Read E-book"
                             FontSize="14"
                             FontWeight="Bold"
                             Foreground="White"
