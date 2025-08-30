@@ -61,23 +61,11 @@ namespace Librarymanage
             LoadBooksFromDatabase();
         }
 
-        private void EbookButton_Click(object sender, RoutedEventArgs e)
-        {
-            ContentPanel.Children.Clear();
-            BookAdminPanel.Visibility = Visibility.Collapsed;
-            StatAdminPanel.Visibility = Visibility.Collapsed;
-            MembersAdminPanel.Visibility = Visibility.Collapsed;
-            EventsAdminPanel.Visibility = Visibility.Collapsed;
-            EbookAdminPanel.Visibility = Visibility.Visible;
-            ContentPanel.Children.Add(EbookAdminPanel);
-        }
-
         private void MembersButton_Click(object sender, RoutedEventArgs e)
         {
             ContentPanel.Children.Clear();
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Collapsed;
-            EbookAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(MembersAdminPanel);
@@ -88,7 +76,6 @@ namespace Librarymanage
             ContentPanel.Children.Clear();
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Collapsed;
-            EbookAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(EventsAdminPanel);
@@ -98,7 +85,6 @@ namespace Librarymanage
             ContentPanel.Children.Clear();
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Visible;
-            EbookAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Collapsed;
             ContentPanel.Children.Add(StatAdminPanel);
