@@ -204,46 +204,46 @@
                         VerticalScrollBarVisibility="Disabled">
                         <StackPanel>
                             <StackPanel
-                            Margin="5,12,0,0"
-                            VerticalAlignment="Center"
-                            Orientation="Horizontal">
+                                Margin="5,12,0,0"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
 
                                 <Button
-                                x:Name="Library"
-                                Width="Auto"
-                                Height="30"
-                                Margin="5,5"
-                                Padding="5"
-                                Background="#4B0082"
-                                Click="Library_clicked"
-                                Content="Libray"
-                                FontSize="12"
-                                FontWeight="Bold"
-                                Foreground="White" />
+                                    x:Name="Library"
+                                    Width="Auto"
+                                    Height="30"
+                                    Margin="5,5"
+                                    Padding="5"
+                                    Background="#4B0082"
+                                    Click="Library_clicked"
+                                    Content="Libray"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="White" />
                                 <Button
-                                x:Name="Account_Details"
-                                Width="Auto"
-                                Height="30"
-                                Margin="5,5"
-                                Padding="5"
-                                Background="#4B0082"
-                                Click="Accountdetail_clicked"
-                                Content="Account Details"
-                                FontSize="12"
-                                FontWeight="Bold"
-                                Foreground="White" />
+                                    x:Name="Account_Details"
+                                    Width="Auto"
+                                    Height="30"
+                                    Margin="5,5"
+                                    Padding="5"
+                                    Background="#4B0082"
+                                    Click="Accountdetail_clicked"
+                                    Content="Account Details"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="White" />
                                 <Button
-                                x:Name="Readmangas"
-                                Width="Auto"
-                                Height="30"
-                                Margin="5,5"
-                                Padding="5"
-                                Background="#4B0082"
-                                Click="Readmangas_clicked"
-                                Content="Mangas"
-                                FontSize="12"
-                                FontWeight="Bold"
-                                Foreground="White" />
+                                    x:Name="Readmangas"
+                                    Width="Auto"
+                                    Height="30"
+                                    Margin="5,5"
+                                    Padding="5"
+                                    Background="#4B0082"
+                                    Click="Readmangas_clicked"
+                                    Content="Mangas"
+                                    FontSize="12"
+                                    FontWeight="Bold"
+                                    Foreground="White" />
                             </StackPanel>
                         </StackPanel>
                     </ScrollViewer>

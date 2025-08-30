@@ -20,7 +20,7 @@ namespace Librarymanage
 
             // Create updater
             _sparkle = new SparkleUpdater(
-                "https://harolddjeumen.github.io/Library_Management/appcast.xml",   // your appcast URL
+                "https://harolddjeumen.github.io/Library_Management/Librarymanage/appcast.xml",   // your appcast URL
                 new Ed25519Checker(SecurityMode.Unsafe, null) // skip signing for now
             );
 
