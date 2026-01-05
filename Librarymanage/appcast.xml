@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymcmillan.com/xmlns/sparkle">
+  <channel>
+    <title>Library Management Updates</title>
+    <link>https://harolddjeumen.github.io/Library_Management/</link>
+    <description>Update feed for Library Management</description>
+    <language>en</language>
+
+    <item>
+      <title>Version 1.0.0</title>
+      <sparkle:releaseNotesLink>https://harolddjeumen.github.io/Library_Management/releasenotes.html</sparkle:releaseNotesLink>
+      <pubDate>Mon, 25 Aug 2025 12:00:00 +0000</pubDate>
+      <enclosure 
+        url="https://harolddjeumen.github.io/Library_Management/Library_App.zip"
+        sparkle:version="1.0.0"
+        length="90530871"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>

@@ -1,14 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using LiveCharts;
+using LiveCharts.Defaults;
+using LiveCharts.Wpf;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.SQLite;
+using System.Globalization;
 using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using LiveCharts;
-using LiveCharts.Wpf;
-using LiveCharts.Defaults;
-using System.Collections.Generic;
 
 namespace Librarymanage
 {
@@ -20,6 +23,8 @@ namespace Librarymanage
         private Frame _mainFrame;
         private static string connectionString = $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Library.db")};Version=3;";
 
+        private ObservableCollection<User> UsersList = new ObservableCollection<User>();
+
         public Func<double, string> Formatter { get; set; }
         public SeriesCollection NewMembersSeries { get; set; }
         public SeriesCollection NewBooksSeries { get; set; }
@@ -28,12 +33,12 @@ namespace Librarymanage
 
 
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
         public Admin_Page(Frame mainFrame)
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+
         {
             InitializeComponent();
             _mainFrame = mainFrame;
+            LoadUsersFromDatabase();
 
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
@@ -56,45 +61,14 @@ namespace Librarymanage
             LoadBooksFromDatabase();
         }
 
-        private void EventsButton_Click(object sender, RoutedEventArgs e)
-        {
-            LoadContent("Events Management (Coming Soon)");
-        }
-
-        private void EbookButton_Click(object sender, RoutedEventArgs e)
-        {
-            ContentPanel.Children.Clear();
-            BookAdminPanel.Visibility = Visibility.Collapsed;
-            StatAdminPanel.Visibility = Visibility.Collapsed;
-            MembersAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Collapsed;
-            EventsAdminPanel.Visibility = Visibility.Collapsed;
-            EbookAdminPanel.Visibility = Visibility.Visible;
-            ContentPanel.Children.Add(EbookAdminPanel);
-        }
-
         private void MembersButton_Click(object sender, RoutedEventArgs e)
         {
             ContentPanel.Children.Clear();
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Collapsed;
-            EbookAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(MembersAdminPanel);
-        }
-
-        private void UserButton_Click(object sender, RoutedEventArgs e)
-        {
-            ContentPanel.Children.Clear();
-            BookAdminPanel.Visibility = Visibility.Collapsed;
-            StatAdminPanel.Visibility = Visibility.Collapsed;
-            EbookAdminPanel.Visibility = Visibility.Collapsed;
-            MembersAdminPanel.Visibility = Visibility.Collapsed;
-            EventsAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Visible;
-            ContentPanel.Children.Add(UserAdminPanel);
         }
 
         private void EventsButton_Click(object sender, RoutedEventArgs e)
@@ -102,11 +76,19 @@ namespace Librarymanage
             ContentPanel.Children.Clear();
             BookAdminPanel.Visibility = Visibility.Collapsed;
             StatAdminPanel.Visibility = Visibility.Collapsed;
-            EbookAdminPanel.Visibility = Visibility.Collapsed;
             MembersAdminPanel.Visibility = Visibility.Collapsed;
-            UserAdminPanel.Visibility = Visibility.Collapsed;
             EventsAdminPanel.Visibility = Visibility.Visible;
             ContentPanel.Children.Add(EventsAdminPanel);
+        }
+        private void StatsButton_Click(object sender, RoutedEventArgs e)
+        {
+            ContentPanel.Children.Clear();
+            BookAdminPanel.Visibility = Visibility.Collapsed;
+            StatAdminPanel.Visibility = Visibility.Visible;
+            MembersAdminPanel.Visibility = Visibility.Collapsed;
+            EventsAdminPanel.Visibility = Visibility.Collapsed;
+            ContentPanel.Children.Add(StatAdminPanel);
+            LoadStatisticsData();
         }
 
         private async void AdminSearchButton_Click(object sender, RoutedEventArgs e)
@@ -117,6 +99,7 @@ namespace Librarymanage
             ApiBooksPanel.Children.Clear();
 
             List<Book> books = await SearchBooksFromAPI(query);
+
 
             foreach (var book in books)
             {
@@ -145,28 +128,45 @@ namespace Librarymanage
                 TextBlock title = new TextBlock { Text = book.Title, FontWeight = FontWeights.Bold, FontSize = 18 };
                 TextBlock author = new TextBlock { Text = $"Author: {book.Author}", Margin = new Thickness(0, 5, 0, 0) };
                 TextBlock release = new TextBlock { Text = $"Release Date: {book.ReleaseDate}", Margin = new Thickness(0, 5, 0, 0) };
+
+                // ✅ Show if Preview is available
+                TextBlock previewStatus = new TextBlock
+                {
+                    Text = string.IsNullOrEmpty(book.PreviewUrl) ? "Preview: Not Available" : "Preview: Available",
+                    Margin = new Thickness(0, 5, 0, 0),
+                    Foreground = new SolidColorBrush(string.IsNullOrEmpty(book.PreviewUrl) ? Colors.Red : Colors.Green)
+                };
+
+                // Book Description inside a ScrollViewer
+                ScrollViewer descriptionScroll = new ScrollViewer
+                {
+                    Height = 100, // limit display height
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto // hidden until needed
+                };
+
                 TextBlock description = new TextBlock
                 {
                     Text = book.Summary,
                     TextWrapping = TextWrapping.Wrap,
-                    MaxHeight = 100,
                     Margin = new Thickness(0, 5, 0, 0)
                 };
+
+                descriptionScroll.Content = description;
 
                 Button addButton = new Button
                 {
                     Content = "Add to Database",
                     Margin = new Thickness(0, 10, 0, 0),
-                    Tag = book
+                    Tag = book,
                 };
                 addButton.Click += AddBookToDatabase;
-                
 
                 // Build details panel
                 detailsPanel.Children.Add(title);
                 detailsPanel.Children.Add(author);
                 detailsPanel.Children.Add(release);
-                detailsPanel.Children.Add(description);
+                detailsPanel.Children.Add(previewStatus); // ✅ Added preview info here
+                detailsPanel.Children.Add(descriptionScroll);
                 detailsPanel.Children.Add(addButton);
 
                 // Build book panel
@@ -180,21 +180,19 @@ namespace Librarymanage
         }
 
 
-
         private async void AddBookToDatabase(object sender, RoutedEventArgs e)
         {
             Button? addButton = sender as Button;
-#pragma warning disable CS8602
+
             Book selectedBook = (Book)addButton.Tag;
-#pragma warning restore CS8602
 
             using (SQLiteConnection conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
                 string insertQuery = @"INSERT INTO Books 
-            (Name, [Release-Date], Author, ISBN, Description, JoinDate, BookImage, Genre, EbookUrl, PreviewUrl) 
-            VALUES 
-            (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate, @BookImage, @Genre, @EbookUrl, @PreviewUrl)";
+                                     (Name, [Release-Date], Author, ISBN, Description, JoinDate, BookImage, PreviewUrl) 
+                                     VALUES 
+                                     (@Name, @ReleaseDate, @Author, @ISBN, @Description, @JoinDate, @BookImage, @PreviewUrl)";
 
                 using (SQLiteCommand cmd = new SQLiteCommand(insertQuery, conn))
                 {
@@ -226,9 +224,6 @@ namespace Librarymanage
                         cmd.Parameters.AddWithValue("@BookImage", imageBytes);
                     else
                         cmd.Parameters.AddWithValue("@BookImage", DBNull.Value);
-
-                    cmd.Parameters.AddWithValue("@Genre", selectedBook.Genre ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@EbookUrl", selectedBook.EbookUrl ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@PreviewUrl", selectedBook.PreviewUrl ?? (object)DBNull.Value);
 
                     try
@@ -244,6 +239,7 @@ namespace Librarymanage
                 }
             }
         }
+
 
         private async Task<byte[]?> DownloadImageBytesAsync(string imageUrl)
         {
@@ -266,91 +262,140 @@ namespace Librarymanage
             return null;
         }
 
-
-
         private async Task<List<Book>> SearchBooksFromAPI(string searchQuery)
         {
+            ApiBooksPanel.Children.Clear();
             List<Book> books = new List<Book>();
-            List<string> queries = new List<string>
-    {
-        searchQuery,
-
-    };
-
             using (HttpClient client = new HttpClient())
             {
-                foreach (var query in queries)
+                try
                 {
-                    try
+                    string url = $"https://openlibrary.org/search.json?q={searchQuery.Replace(" ", "+")}&limit=40";
+                    var response = await client.GetAsync(url);
+                    if (!response.IsSuccessStatusCode)
+                        return books;
+
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(jsonString);
+
+                    if (data.docs != null)
                     {
-                        string Url = $"https://www.googleapis.com/books/v1/volumes?q={query.Replace(" ", "+")}&maxResults=40";
-                        var response = await client.GetAsync(Url);
-                        var jsonString = await response.Content.ReadAsStringAsync();
-
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-                        dynamic data = JsonConvert.DeserializeObject(jsonString);
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-                        if (data.items != null && data.items.Count > 0)
+                        foreach (var doc in data.docs)
                         {
-                            foreach (var item in data.items)
+                            bool hasEbook = doc.ebook_access == "full" || doc.has_fulltext == true;
+                            if (!hasEbook) continue;
+
+                            string title = doc.title != null ? (string)doc.title : "Unknown Title";
+                            string author = (doc.author_name != null && doc.author_name.Count > 0)
+                                ? string.Join(", ", doc.author_name.ToObject<string[]>())
+                                : "Unknown Author";
+
+                            string imagePath = doc.cover_i != null
+                                ? $"https://covers.openlibrary.org/b/id/{doc.cover_i}-L.jpg"
+                                : "https://via.placeholder.com/150";
+
+                            // ✅ direct ebook link if possible
+                            string previewUrl = "no preview available";
+                            if (doc.ia != null && doc.ia.Count > 0)
                             {
-                                var bookInfo = item.volumeInfo;
-
-
-                                if (bookInfo.imageLinks == null || string.IsNullOrEmpty((string)bookInfo.imageLinks.thumbnail))
-                                    continue;
-
-                                string imagePath = ((string)bookInfo.imageLinks.thumbnail).Replace("http://", "https://");
-                                if (imagePath == "https://via.placeholder.com/150")
-                                    continue;
-
-
-                                if (bookInfo.authors == null || bookInfo.authors.Count == 0)
-                                    continue;
-
-                                string[] authorsArray = bookInfo.authors.ToObject<string[]>();
-                                if (authorsArray.Length == 0 || authorsArray[0].ToLower() == "unknown")
-                                    continue;
-
-
-                                if (bookInfo.description == null || string.IsNullOrEmpty((string)bookInfo.description) || ((string)bookInfo.description).ToLower() == "unknown")
-                                    continue;
-
-
-                                if (bookInfo.industryIdentifiers == null || bookInfo.industryIdentifiers.Count == 0)
-                                    continue;
-
-                                books.Add(new Book
-                                {
-                                    Title = bookInfo.title,
-                                    Author = string.Join(", ", authorsArray),
-                                    ReleaseDate = bookInfo.publishedDate != null ? bookInfo.publishedDate.ToString() : "Unknown",
-                                    ISBN = bookInfo.industryIdentifiers[0].identifier.ToString(),
-                                    ImagePath = imagePath,
-                                    Summary = bookInfo.description.ToString(),
-                                    Genre = bookInfo.categories != null && bookInfo.categories.Count > 0 ? bookInfo.categories[0].ToString() : null,
-                                    EbookUrl = item.accessInfo != null && item.accessInfo.epub != null && item.accessInfo.epub.isAvailable == true && item.accessInfo.epub.acsTokenLink != null ? item.accessInfo.epub.acsTokenLink.ToString() : null,
-                                    PreviewUrl = bookInfo.previewLink != null ? bookInfo.previewLink.ToString() : null
-                                });
-
-                                if (books.Count >= 40) break; //  Load 40 books now
+                                string identifier = doc.ia[0];
+                                previewUrl = $"https://archive.org/stream/{identifier}";
                             }
-                        }
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                            else if (doc.key != null)
+                            {
+                                previewUrl = $"https://openlibrary.org{doc.key}";
+                            }
 
-                        if (books.Count >= 40) break; //  Stop searching if enough books are found
+                            // Defaults
+                            string isbn = "Unknown";
+                            string summary = "No description available";
+
+                            // Google fallback for ISBN + summary
+                            var googleData = await FetchGoogleBookData(title, author);
+                            if (!string.IsNullOrEmpty(googleData.isbn))
+                                isbn = googleData.isbn;
+                            if (!string.IsNullOrEmpty(googleData.description))
+                                summary = googleData.description;
+
+                            books.Add(new Book
+                            {
+                                Title = title,
+                                Author = author,
+                                ReleaseDate = doc.first_publish_year != null ? doc.first_publish_year.ToString() : "Unknown",
+                                ISBN = isbn,
+                                ImagePath = imagePath,
+                                Summary = summary,
+                                PreviewUrl = previewUrl
+                            });
+
+                            if (books.Count >= 40) break;
+                        }
+
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error fetching data from API: {ex.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error fetching data from Open Library: {ex.Message}");
                 }
             }
 
             return books;
         }
+
+        private async Task<(string isbn, string description)> FetchGoogleBookData(string title, string author)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    string query = $"{title} {author}".Replace(" ", "+");
+                    string url = $"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=1";
+
+                    var response = await client.GetAsync(url);
+                    if (!response.IsSuccessStatusCode) return (null, null);
+
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    dynamic data = JsonConvert.DeserializeObject(jsonString);
+
+                    if (data.items != null && data.items.Count > 0)
+                    {
+                        var volumeInfo = data.items[0].volumeInfo;
+
+                        // ISBN
+                        string isbn = null;
+                        if (volumeInfo.industryIdentifiers != null)
+                        {
+                            foreach (var id in volumeInfo.industryIdentifiers)
+                            {
+                                if ((string)id.type == "ISBN_13")
+                                {
+                                    isbn = id.identifier;
+                                    break;
+                                }
+                                if ((string)id.type == "ISBN_10" && isbn == null)
+                                {
+                                    isbn = id.identifier;
+                                }
+                            }
+                        }
+
+                        // Description
+                        string description = volumeInfo.description != null
+                            ? (string)volumeInfo.description
+                            : null;
+
+                        return (isbn, description);
+                    }
+                }
+                catch
+                {
+                    return (null, null);
+                }
+            }
+
+            return (null, null);
+        }
+
 
         private void LoadBooksFromDatabase()
         {
@@ -365,13 +410,13 @@ namespace Librarymanage
                 {
                     while (reader.Read())
                     {
-                        StackPanel bookRow = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(5) };
+                        StackPanel bookRow = new StackPanel { Orientation = Orientation.Horizontal};
 
                         // Show book name and author
                         TextBlock bookInfo = new TextBlock
                         {
                             Text = $"{reader["Name"]} by {reader["Author"]}, added on {reader["JoinDate"]}",
-                            Width = 592,
+                            Width = 520,
                             TextWrapping = TextWrapping.Wrap,
                             FontSize = 16
                         };
@@ -392,7 +437,7 @@ namespace Librarymanage
                         Button modifyButton = new Button
                         {
                             Content = "Modify",
-                            Margin = new Thickness(5),
+                            Margin = new Thickness(5,5,0,5),
                             Background = Brushes.Orange,
                             Foreground = Brushes.White,
                             HorizontalAlignment = HorizontalAlignment.Right
@@ -621,21 +666,213 @@ namespace Librarymanage
         {
             _mainFrame.Navigate(new Login_Page(_mainFrame));
         }
+
+        private void LoadUsersFromDatabase()
+        {
+            UsersList.Clear();
+
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                string query = "SELECT Id, Username, Password, Email, Phone, JoinDate FROM Users";
+                using (var cmd = new SQLiteCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        UsersList.Add(new User
+                        {
+                            UserId = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            Email = reader.GetString(3),
+                            Phone = reader.GetString(4),
+                            JoinDate = reader.GetString(5)
+                        });
+                    }
+                }
+            }
+
+            MembersTable.ItemsSource = UsersList;
+        }
+
+        // Search user by username
+        private void SearchUser_Click(object sender, RoutedEventArgs e)
+        {
+            string searchText = MemberSearchBox.Text.ToLower();
+            var filtered = UsersList.Where(u => u.Username.ToLower().Contains(searchText)).ToList();
+            MembersTable.ItemsSource = filtered;
+        }
+
+        // Reload all users
+        private void LoadUsers_Click(object sender, RoutedEventArgs e)
+        {
+            LoadUsersFromDatabase();
+        }
+
+        public static void AddUserToDatabase(string username, string password, string email, string phone)
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = @"SELECT 
+                     (SELECT COUNT(*) FROM Users WHERE Username = @Username) AS UsernameCount,
+                     (SELECT COUNT(*) FROM Users WHERE Email = @Email) AS EmailCount,
+                     (SELECT COUNT(*) FROM Users WHERE Phone = @Phone) AS PhoneCount;
+";
+
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@Email", email);
+                    command.Parameters.AddWithValue("@Phone", phone);
+
+                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            List<string> duplicates = new List<string>();
+
+                            if (reader.GetInt64(0) > 0)
+                                duplicates.Add("Username");
+                            if (reader.GetInt64(1) > 0)
+                                duplicates.Add("Email");
+                            if (reader.GetInt64(2) > 0)
+                                duplicates.Add("Phone");
+
+                            if (duplicates.Count > 0)
+                            {
+                                string message = string.Join(" and ", duplicates) + " already exist(s) in the database.";
+                                MessageBox.Show(message);
+                                return;
+                            }
+                        }
+                    }
+                }
+
+
+                // Insert the new user
+                query = "INSERT INTO Users (Username, Password, Email, Phone, JoinDate) VALUES (@Username, @Password, @Email, @Phone, @JoinDate)";
+                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@Password", password);
+                    command.Parameters.AddWithValue("@Email", email);
+                    command.Parameters.AddWithValue("@Phone", phone);
+                    command.Parameters.AddWithValue("@JoinDate", DateTime.Now.ToString("yyyy-MM-dd"));
+
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private void AddMember_Click(object sender, RoutedEventArgs e)
+        {
+            String username = NewMemberName.Text.Trim();
+            String email = NewMemberEmail.Text.Trim();
+            String phone = NewMemberPhone.Text.Trim();
+            String password = NewMemberPassword.Password;
+
+            if (ValidateUserInput(password, email, phone)) 
+            {
+                AddUserToDatabase(username, password, email, phone);
+            }
+                
+        }
+
+        private bool IsPasswordValid(string password)
+        {
+            if (password.Length < 8)
+                return false;
+
+            if (!password.Any(char.IsUpper))
+                return false;
+
+            if (!password.Any(char.IsLower))
+                return false;
+
+            if (!password.Any(char.IsDigit))
+                return false;
+
+            if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+                return false;
+
+            return true;
+        }
+
+
+        private bool IsEmailValid(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            // must contain @
+            if (!email.Contains("@"))
+                return false;
+
+            // must contain .
+            if (!email.Contains("."))
+                return false;
+
+            // very basic structure check
+            int atIndex = email.IndexOf("@");
+            int dotIndex = email.LastIndexOf(".");
+
+            if (atIndex < 1 || dotIndex < atIndex + 2 || dotIndex == email.Length - 1)
+                return false;
+
+            return true;
+        }
+
+        private bool IsPhoneValid(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone))
+                return false;
+
+            // allow "0xxxxxxxxx" (10 digits)
+            if (phone.Length == 10 && phone.StartsWith("0") && phone.All(char.IsDigit))
+                return true;
+
+            // allow "+27xxxxxxxxx" (12 digits)
+            if (phone.Length == 12 && phone.StartsWith("+27") && phone.Skip(3).All(char.IsDigit))
+                return true;
+
+            return false;
+        }
+
+        private bool ValidateUserInput(string password, string email, string phone)
+        {
+            if (!IsPasswordValid(password))
+            {
+                MessageBox.Show("Password must be at least 8 characters long, with uppercase, lowercase, number, and special character.");
+                return false;
+            }
+
+            if (!IsEmailValid(email))
+            {
+                MessageBox.Show("Please enter a valid email address.");
+                return false;
+            }
+
+            if (!IsPhoneValid(phone))
+            {
+                MessageBox.Show("Please enter a valid phone number (e.g. 0821234567 or +27821234567).");
+                return false;
+            }
+
+            return true;
+        }
     }
 }
 
+  
+ public class User
+{
+    public int UserId { get; set; }
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string Phone { get; set; }
+    public string JoinDate { get; set; }
+}
 
-    public class Book
-    {
-        public string? Title { get; set; }
-        public string? Author { get; set; }
-        public string? ReleaseDate { get; set; }
-        public string? ISBN { get; set; }
-        public string? ImagePath { get; set; }
-        public string? Summary { get; set; }
-        public string? Genre { get; set; }
-        public string? EbookUrl { get; set; }
-        public string? PreviewUrl { get; set; }
-    }
-
-
+//thabo_m Thabo@2024!

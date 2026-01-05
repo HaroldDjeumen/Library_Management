@@ -1,0 +1,51 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*" # Runs only when you push a tag like v1.0.0
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x" # Adjust if you’re on another version
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build app
+        run: dotnet publish -c Release -r win-x64 --self-contained true -o publish/
+
+      - name: Zip output
+        run: Compress-Archive -Path publish/* -DestinationPath Library_App.zip
+
+      # Install NetSparkle tools once
+      - name: Install NetSparkle tools
+        run: dotnet tool install --global netsparkleupdater.tools
+
+      # Generate appcast.xml (includes signature automatically if key is provided)
+      - name: Generate appcast.xml
+        run: |
+          netsparkle-dsa generate-appcast `
+            --baseUrl "https://github.com/HaroldDjeumen/Library_Management/releases/download/${{ github.ref_name }}/" `
+            --files "Library_App.zip" `
+            --signing-key "${{ secrets.NETSPARKLE_PRIVATE_KEY }}" `
+            --appcast "appcast.xml"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            Library_App.zip
+            appcast.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
