@@ -400,7 +400,7 @@ namespace Librarymanage
             BooksPanel.Visibility = Visibility.Collapsed;
             PreviewPanel.Visibility = Visibility.Collapsed;
             AccountPanel.Visibility = Visibility.Visible; // <- Show Account Details
-            LoadAccountDetails(); // <- Load user details
+            LoadAccountPage(); // <- Load user details
         }
 
         private void Library_clicked(object sender, RoutedEventArgs e)
@@ -410,187 +410,6 @@ namespace Librarymanage
             AccountPanel.Visibility = Visibility.Collapsed;
             PreviewPanel.Visibility = Visibility.Collapsed;
             BooksPanel.Visibility = Visibility.Visible; // <- Show books panel
-        }
-
-        private void Reservation_clicked(object sender, RoutedEventArgs e)
-        {
-            BooksPanel.Visibility = Visibility.Collapsed;
-            AccountPanel.Visibility = Visibility.Collapsed;
-            PreviewPanel.Visibility = Visibility.Collapsed;
-            ReservePanel.Visibility = Visibility.Visible; // <- Show reserve panel
-            LoadReservedBooksFromDatabase(); // <- Load reserved books
-        }
-
-
-        private void LoadReservedBooksFromDatabase()
-        {
-           // ReservePanel.Children.Clear(); // Clear old items
-
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = "SELECT * FROM Reservations WHERE Username = @Username";
-
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Username", _currentUsername);
-
-                    using (SQLiteDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            int reservationId = Convert.ToInt32(reader["Id"]);
-                            string bookTitle = reader["BookTitle"].ToString();
-                            string reservationDate = reader["ReservationDate"].ToString();
-                            string returnDate = reader["ReturnDate"].ToString();
-
-                            // Create card border
-                            Border card = new Border
-                            {
-                                Background = Brushes.White,
-                                BorderBrush = Brushes.Gray,
-                                BorderThickness = new Thickness(1),
-                                CornerRadius = new CornerRadius(5),
-                                Margin = new Thickness(5),
-                                Padding = new Thickness(10),
-                                Width = 276
-                            };
-
-                            StackPanel content = new StackPanel();
-
-                            TextBlock bookInfo = new TextBlock
-                            {
-                                Text = $"Book: {bookTitle}\nReserved from: {reservationDate}\nTo: {returnDate}",
-                                TextWrapping = TextWrapping.Wrap,
-                                FontSize = 14,
-                                Margin = new Thickness(0, 0, 0, 5)
-                            };
-
-                            // Modify button
-                            Button modifyButton = new Button
-                            {
-                                Content = "Edit Dates",
-                                Margin = new Thickness(0, 5, 0, 5),
-                                Background = Brushes.Orange,
-                                Foreground = Brushes.White
-                            };
-                            modifyButton.Click += (s, e) =>
-                            {
-                                ModifyReservationDates(reservationId, reservationDate, returnDate);
-                                LoadBooksFromDatabase(); // Refresh after edit
-                            };
-
-                            // Delete button
-                            Button deleteButton = new Button
-                            {
-                                Content = "Delete",
-                                Margin = new Thickness(0, 5, 0, 5),
-                                Background = Brushes.Red,
-                                Foreground = Brushes.White
-                            };
-                            deleteButton.Click += (s, e) =>
-                            {
-                                DeleteBook(reservationId);
-                                LoadBooksFromDatabase(); // Refresh after delete
-                            };
-
-                            content.Children.Add(bookInfo);
-                            content.Children.Add(modifyButton);
-                            content.Children.Add(deleteButton);
-
-                            card.Child = content;
-
-                            ReservePanel.Children.Add(card);
-                        }
-                    }
-                }
-            }
-        }
-
-
-
-        private void DeleteBook(int reservationId)
-        {
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = "DELETE FROM Reservations WHERE Id = @Id";
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Id", reservationId);
-                    command.ExecuteNonQuery();
-                }
-            }
-
-            // MessageBox.Show("Book deleted.");
-            LoadBooksFromDatabase(); // Refresh list
-        }
-
-
-        private void ModifyReservationDates(int reservationId, string reservationDate, string returnDate)
-        {
-            Window dateWindow = new Window
-            {
-                Title = "Edit Reservation Dates",
-                Width = 300,
-                Height = 250,
-                Background = Brushes.White,
-                WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                ResizeMode = ResizeMode.NoResize
-            };
-
-            StackPanel panel = new StackPanel { Margin = new Thickness(20) };
-
-            TextBox reservationBox = new TextBox { Text = reservationDate, Margin = new Thickness(0, 10, 0, 10) };
-            TextBox returnBox = new TextBox { Text = returnDate, Margin = new Thickness(0, 0, 0, 10) };
-
-            Button saveButton = new Button
-            {
-                Content = "Save",
-                Background = Brushes.Green,
-                Foreground = Brushes.White,
-                Width = 100,
-                Margin = new Thickness(0, 10, 0, 0),
-                HorizontalAlignment = HorizontalAlignment.Center
-            };
-
-            saveButton.Click += (s, e) =>
-            {
-                UpdateDatesOnly(reservationId, reservationBox.Text, returnBox.Text);
-                dateWindow.Close();
-            };
-
-            panel.Children.Add(new TextBlock { Text = "Reservation Date:" });
-            panel.Children.Add(reservationBox);
-            panel.Children.Add(new TextBlock { Text = "Return Date:" });
-            panel.Children.Add(returnBox);
-            panel.Children.Add(saveButton);
-
-            dateWindow.Content = panel;
-            dateWindow.ShowDialog();
-        }
-
-
-        private void UpdateDatesOnly(int reservationId, string reservationDate, string returnDate)
-        {
-            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = @"UPDATE Reservations 
-                         SET ReservationDate = @ReservationDate, ReturnDate = @ReturnDate 
-                         WHERE Id = @Id";
-
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@ReservationDate", reservationDate);
-                    command.Parameters.AddWithValue("@ReturnDate", returnDate);
-                    command.Parameters.AddWithValue("@Id", reservationId);
-
-                    command.ExecuteNonQuery();
-                }
-            }
-
-            MessageBox.Show("Reservation updated.");
         }
 
         private void EbookButton_Click(object sender, RoutedEventArgs e)
@@ -603,60 +422,230 @@ namespace Librarymanage
 
         }
 
-        private void LoadAccountDetails()
+        private void LoadAccountPage()
         {
             AccountPanel.Children.Clear();
 
-            // Example: Load account info from database
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-                string query = "SELECT * FROM Users WHERE Username = @Username";
 
-                using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                // --- USER DETAILS ---
+                string userQuery = "SELECT * FROM Users WHERE Username = @Username";
+                using (SQLiteCommand userCommand = new SQLiteCommand(userQuery, connection))
                 {
-                    command.Parameters.AddWithValue("@Username", _currentUsername);
+                    userCommand.Parameters.AddWithValue("@Username", _currentUsername);
 
-                    using (SQLiteDataReader reader = command.ExecuteReader())
+                    using (SQLiteDataReader reader = userCommand.ExecuteReader())
                     {
                         if (reader.Read())
                         {
-                            // Example: Show account info
-                            StackPanel accountInfo = new StackPanel { Margin = new Thickness(10) };
+                            // Main container for account info
+                            StackPanel profileContainer = new StackPanel
+                            {
+                                Orientation = Orientation.Horizontal,
+                                Margin = new Thickness(10),
+                                VerticalAlignment = VerticalAlignment.Center
+                            };
+
+                            // Circle border for profile image
+                            Border profileCircle = new Border
+                            {
+                                Width = 160,
+                                Height = 160,
+                                BorderBrush = Brushes.Gray,
+                                BorderThickness = new Thickness(2),
+                                Margin = new Thickness(0, 0, 20, 0),
+                                Background = Brushes.LightGray // fallback color if no image
+                            };
+
+                            Image profileImage = new Image
+                            {
+                                Stretch = Stretch.Fill
+                            };
+
+                            // Load profile picture if available in DB
+                            if (reader["ProfilePicture"] != DBNull.Value)
+                            {
+                                byte[] imageData = (byte[])reader["ProfilePicture"];
+                                profileImage.Source = LoadImage(imageData);
+                            }
+
+                            profileCircle.Child = profileImage;
+
+                            // Right side: account info
+                            StackPanel accountInfo = new StackPanel { VerticalAlignment = VerticalAlignment.Center};
 
                             accountInfo.Children.Add(new TextBlock
                             {
-                                Text = "Account Details",
-                                FontSize = 20,
+                                Text = reader["Username"].ToString(),
+                                FontSize = 25,
                                 FontWeight = FontWeights.Bold,
-                                Foreground = Brushes.Purple,
-                                Margin = new Thickness(0, 0, 0, 10)
-                            });
-
-                            accountInfo.Children.Add(new TextBlock
-                            {
-                                Text = "Username: " + reader["Username"].ToString(),
-                                FontSize = 16
+                                Margin = new Thickness(10, 0, 0, 0),
+                                Foreground = Brushes.Purple
                             });
 
                             accountInfo.Children.Add(new TextBlock
                             {
                                 Text = "Email: " + reader["Email"].ToString(),
-                                FontSize = 16
+                                FontSize = 18,
+                                Margin = new Thickness(10, 10, 0, 0),
+                                Foreground = Brushes.Black
                             });
 
                             accountInfo.Children.Add(new TextBlock
                             {
-                                Text = "Phone: " + reader["Phone"].ToString(),
-                                FontSize = 16
+                                Text = "Phone Number: " + reader["Phone"].ToString(),
+                                FontSize = 18,
+                                Margin = new Thickness(10, 5, 0, 0),
+                                Foreground = Brushes.Black
                             });
 
-                            AccountPanel.Children.Add(accountInfo);
+                            accountInfo.Children.Add(new TextBlock
+                            {
+                                Text = "Join Date: " + reader["JoinDate"].ToString(),
+                                FontSize = 18,
+                                Margin = new Thickness(10, 5, 0, 0),
+                                Foreground = Brushes.Black
+                            });
+
+                            Button changePicBtn = new Button
+                            {
+                                Content = "Change Picture",
+                                Width = 120,
+                                Height = 30,
+                                Margin = new Thickness(50, 5, 0, 0)
+                            };
+
+                            changePicBtn.Click += ChangeProfilePicture_Click;
+
+                            accountInfo.Children.Add(changePicBtn);
+
+                            profileContainer.Children.Add(profileCircle);
+                            profileContainer.Children.Add(accountInfo);
+
+                            AccountPanel.Children.Add(profileContainer);
+                        }
+                    }
+                }
+
+                string reservationQuery = "SELECT * FROM Reservations WHERE Username = @Username";
+                using (SQLiteCommand reservationCommand = new SQLiteCommand(reservationQuery, connection))
+                {
+                    reservationCommand.Parameters.AddWithValue("@Username", _currentUsername);
+
+                    using (SQLiteDataReader reader = reservationCommand.ExecuteReader())
+                    {
+                        // Add title for reserved books if any exist
+                        if (reader.HasRows)
+                        {
+                            TextBlock reservedHeader = new TextBlock
+                            {
+                                Text = "Reserved Books",
+                                FontSize = 18,
+                                FontWeight = FontWeights.Bold,
+                                Foreground = Brushes.DarkBlue,
+                                HorizontalAlignment = HorizontalAlignment.Left,
+                                Margin = new Thickness(10, 20, 0, 10)
+                            };
+                            AccountPanel.Children.Add(reservedHeader);
+                        }
+
+                        while (reader.Read())
+                        {
+                            string bookTitle = reader["BookTitle"].ToString();
+                            string reservationDate = reader["ReservationDate"].ToString();
+                            string returnDate = reader["ReturnDate"].ToString();
+
+                            Border card = new Border
+                            {
+                                Background = Brushes.White,
+                                BorderBrush = Brushes.Gray,
+                                BorderThickness = new Thickness(1),
+                                CornerRadius = new CornerRadius(5),
+                                Margin = new Thickness(10, 5, 10, 5),
+                                Padding = new Thickness(10),
+                                Width = 530
+                            };
+
+                            StackPanel content = new StackPanel();
+
+                            TextBlock bookInfo = new TextBlock
+                            {
+                                Text = $"Book: {bookTitle}\nReserved: {reservationDate}\nReturn: {returnDate}",
+                                TextWrapping = TextWrapping.Wrap,
+                                FontSize = 14,
+                                Margin = new Thickness(0, 0, 0, 5)
+                            };
+
+                            Button request = new Button
+                            {
+                                Content = "Request Date Change",
+                                Width = 190,
+                                Height = 30,
+                                Margin = new Thickness(300, 5, 0, 0)
+                            };
+
+                            content.Children.Add(bookInfo);
+                            content.Children.Add(request);
+                            card.Child = content;
+
+                            AccountPanel.Children.Add(card);
                         }
                     }
                 }
             }
         }
+
+        private void ChangeProfilePicture_Click(object sender, RoutedEventArgs e)
+        {
+            // File picker for image
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Select Profile Picture",
+                Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                // Read file as byte[]
+                byte[] imageData = File.ReadAllBytes(dlg.FileName);
+
+                // Save into database
+                using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "UPDATE Users SET ProfilePicture = @Image WHERE Username = @Username";
+                    using (SQLiteCommand cmd = new SQLiteCommand(query, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@Image", imageData);
+                        cmd.Parameters.AddWithValue("@Username", _currentUsername);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                // Refresh UI so the new image appears
+                LoadAccountPage();
+            }
+        }
+
+        private ImageSource LoadImage(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0)
+                return null; // No image saved
+
+            using (var ms = new MemoryStream(imageData))
+            {
+                BitmapImage image = new BitmapImage();
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = ms;
+                image.EndInit();
+                image.Freeze(); // Makes it cross-thread safe
+                return image;
+            }
+        }
+
 
         private async void OpenPreviewButton_Click(object sender, RoutedEventArgs e)
         {
@@ -687,29 +676,7 @@ namespace Librarymanage
 
                                 await PreviewBrowser.EnsureCoreWebView2Async(null);
 
-                                if (PreviewBrowser.CoreWebView2 != null)
-                                {
-                                    PreviewBrowser.CoreWebView2.Navigate(previewUrl);
-                                    PreviewPanel.Visibility = Visibility.Visible;
-                                    ReservePanel.Visibility = Visibility.Collapsed;
-                                    BooksPanel.Visibility = Visibility.Collapsed;
-                                    AccountPanel.Visibility = Visibility.Collapsed;
-                                }
-                                else
-                                {
-                                    MessageBox.Show("CoreWebView2 failed ❌");
-                                }
-
-                                PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
-                                {
-                                    await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
-                                            document.body.style.backgroundColor = 'white';
-                                            document.body.style.color = 'black';
-                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
-                                    ");
-
-                                };
-
+                                LinkOpener(previewUrl);
                             }
                             else
                             {
@@ -726,98 +693,19 @@ namespace Librarymanage
             }
         }
 
-
-        private async void OpenEbookButton_Click(object sender, RoutedEventArgs e)
-        {
-            await PreviewBrowser.EnsureCoreWebView2Async(null);
-
-            if (PreviewBrowser.CoreWebView2 != null)
-            {
-                PreviewBrowser.CoreWebView2.Navigate("https://openlibrary.org");
-                PreviewPanel.Visibility = Visibility.Visible;
-                ReservePanel.Visibility = Visibility.Collapsed;
-                BooksPanel.Visibility = Visibility.Collapsed;
-                AccountPanel.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                MessageBox.Show("CoreWebView2 failed ❌");
-            }
-
-            PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
-            {
-                await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
-                                            document.body.style.backgroundColor = 'white';
-                                            document.body.style.color = 'black';
-                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
-                                    ");
-
-            };
-        }
-
-        private async void educationbooks_clicked(object sender, RoutedEventArgs e)
-        {
-            await PreviewBrowser.EnsureCoreWebView2Async(null);
-
-            if (PreviewBrowser.CoreWebView2 != null)
-            {
-                PreviewBrowser.CoreWebView2.Navigate("https://openlibrary.org");
-                PreviewPanel.Visibility = Visibility.Visible;
-                ReservePanel.Visibility = Visibility.Collapsed;
-                BooksPanel.Visibility = Visibility.Collapsed;
-                AccountPanel.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                MessageBox.Show("CoreWebView2 failed ❌");
-            }
-
-            PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
-            {
-                await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
-                                            document.body.style.backgroundColor = 'white';
-                                            document.body.style.color = 'black';
-                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
-                                    ");
-
-            };
-        }
-
         private async void Readmangas_clicked(object sender, RoutedEventArgs e)
         {
-            await PreviewBrowser.EnsureCoreWebView2Async(null);
-
-            if (PreviewBrowser.CoreWebView2 != null)
-            {
-                PreviewBrowser.CoreWebView2.Navigate("https://mangadex.org");
-                PreviewPanel.Visibility = Visibility.Visible;
-                ReservePanel.Visibility = Visibility.Collapsed;
-                BooksPanel.Visibility = Visibility.Collapsed;
-                AccountPanel.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                MessageBox.Show("CoreWebView2 failed ❌");
-            }
-
-            PreviewBrowser.CoreWebView2.NavigationCompleted += async (s, ev) =>
-            {
-                await PreviewBrowser.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
-                                            document.body.style.backgroundColor = 'white';
-                                            document.body.style.color = 'black';
-                                            document.body.innerHTML = '<h1 style=""color:blue;"">Hello from WebView2</h1>';
-                                    ");
-
-            };
+           LinkOpener("https://mangadex.org");
         }
 
-        private async void Readebooks_clicked(object sender, RoutedEventArgs e)
+
+        private async void LinkOpener(String link) 
         {
             await PreviewBrowser.EnsureCoreWebView2Async(null);
 
             if (PreviewBrowser.CoreWebView2 != null)
             {
-                PreviewBrowser.CoreWebView2.Navigate("https://openlibrary.org");
+                PreviewBrowser.CoreWebView2.Navigate(link);
                 PreviewPanel.Visibility = Visibility.Visible;
                 ReservePanel.Visibility = Visibility.Collapsed;
                 BooksPanel.Visibility = Visibility.Collapsed;

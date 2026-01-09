@@ -18,18 +18,19 @@ namespace Librarymanage
         {
             base.OnStartup(e);
 
-            // Create updater
+           //  Create updater
             _sparkle = new SparkleUpdater(
-                "https://harolddjeumen.github.io/Library_Management/Librarymanage/appcast.xml",   // your appcast URL
-                new Ed25519Checker(SecurityMode.Unsafe, null) // skip signing for now
+                  "https://github.com/harolddjeumen/Library_Management/releases/download/v1.0.0/appcast.xml",
+                  new Ed25519Checker(SecurityMode.Unsafe, null)
             );
 
-            // Set WPF UI factory
+
+          //  Set WPF UI factory
             _sparkle.UIFactory = new UIFactory();
 
 
-            // Start checking for updates
-            Task.Run(async () => await _sparkle.StartLoop(true, true));
+           //  Start checking for updates
+           Task.Run(async () => await _sparkle.StartLoop(true, true));
         }
     }
 }
